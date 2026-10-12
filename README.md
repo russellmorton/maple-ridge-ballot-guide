@@ -35,11 +35,9 @@ npx serve .
 
 ## Deploy
 
-Live at **https://vote-maple-ridge.vercel.app**. GitHub is not connected to Vercel, so pushing does not deploy. From this folder:
+Live at **https://vote-maple-ridge.vercel.app**. The Vercel project is connected to this repo:
 
-```sh
-vercel deploy          # preview (requires Vercel login to view)
-vercel deploy --prod   # publish to vote-maple-ridge.vercel.app
-```
+- Every pull request gets its own preview deployment (linked on the PR).
+- Merging into `main` deploys to production. `main` only accepts changes through pull requests.
 
 Add a `changes` entry in `data.js` for every content correction before deploying.
