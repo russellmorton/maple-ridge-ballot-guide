@@ -56,7 +56,7 @@ function buildGuideText(G) {
 
   L.push("\n# HOW TO VOTE (official source: City of Maple Ridge, " + G.sources.cityElections.url + ")");
   L.push(`- Advance voting days: ${G.advanceDates.join(", ")}, 8 am to 8 pm. Advance voting locations are listed on the City's voter information page: https://www.mapleridge.ca/your-government/municipal-elections/info-voters`);
-  L.push("- General Voting Day places (October 17): " + G.pollingPlaces.map(([n, a]) => `${n}, ${a}`).join("; ") + ".");
+  L.push("- General Voting Day places (October 17). Voters can go to any one of these eight places; they are not assigned to one by address: " + G.pollingPlaces.map(([n, a]) => `${n}, ${a}`).join("; ") + ".");
   L.push("- Eligibility: 18 or older on October 17, 2026; Canadian citizen; lived in B.C. at least six months; and either live in Maple Ridge or be an individual who has owned Maple Ridge property for 30+ days (non-resident property elector).");
   L.push("- ID: registered voters don't need ID. New or unregistered voters can register at the voting place with two pieces of ID that together show who they are and where they live; one must have their signature. Check registration with Elections BC: https://elections.bc.ca/");
   L.push("- Mail ballots: apply online at https://documents.mapleridge.ca/Forms/MailBallot or at City Hall. Completed ballots must arrive by 8 pm on October 17.");
