@@ -8,7 +8,7 @@ import vm from "node:vm";
 import Anthropic from "@anthropic-ai/sdk";
 import { getVercelOidcToken } from "@vercel/oidc";
 
-const MODEL = process.env.AI_GATEWAY_MODEL || "anthropic/claude-haiku-5.5";
+const MODEL = process.env.AI_GATEWAY_MODEL || "anthropic/claude-sonnet-5.5";
 const SITE = "https://vote-maple-ridge.vercel.app";
 
 // Limits that keep cost and abuse in check.
@@ -228,7 +228,9 @@ export default async function handler(req, res) {
     output_config: { effort: "low" },
     metadata: { user_id: key },
     system: [
-      { type: "text", text: systemText(), cache_control: { type: "ephemeral" } },
+      // 1-hour cache: traffic is bursty, and re-writing ~19k tokens every
+      // 5 quiet minutes would cost more than holding the cache longer.
+      { type: "text", text: systemText(), cache_control: { type: "ephemeral", ttl: "1h" } },
       { type: "text", text: `Today's date in Maple Ridge is ${todayPacific()}.` },
     ],
     messages,
