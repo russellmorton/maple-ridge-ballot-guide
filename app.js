@@ -599,6 +599,12 @@
         </div>
       </div>
 
+      <div class="panel prose method" id="disclaimer">
+        <h3>Disclaimer</h3>
+        <p>This guide is an independent project provided for general information only. We've worked to make it accurate and fair, and every candidate summary links to its source, but it may contain errors or be out of date. It is provided "as is", without warranties of any kind, and Russell Morton is not liable for any loss or damage arising from its use or from reliance on it. It is not an official election publication and is not legal advice. Links to other websites are provided for convenience; we aren't responsible for their content.</p>
+        <p><strong>Candidates:</strong> if anything about you is wrong or missing, tell us through the <a href="#feedback">feedback form</a> and we'll check it and correct it promptly.</p>
+      </div>
+
       <div class="panel method">
         <h3>Sources and what we used from each</h3>
         <div class="scroll-x"><table>

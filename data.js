@@ -24,6 +24,7 @@ window.GUIDE = {
     { date: "2026-10-11", text: "Voting info: added that registered voters don't need ID; corrected what happens if a borrowing question fails (City staff review next steps for council)." },
     { date: "2026-10-11", text: "Added Vercel Web Analytics (cookieless visit counts). Updated the privacy note on this page to describe it." },
     { date: "2026-10-12", text: "Added the publisher's name (Russell Morton), an accuracy note in the footer, and a feedback form for reporting errors." },
+    { date: "2026-10-12", text: "Added a disclaimer to this page and the footer, and an invitation for candidates to request corrections." },
   ],
   electionDay: "2026-10-17T08:00:00-07:00",
   pollsClose: "2026-10-17T20:00:00-07:00",
