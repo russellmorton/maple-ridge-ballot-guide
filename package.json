@@ -2,8 +2,12 @@
   "name": "maple-ridge-ballot-guide",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
-    "@vercel/blob": "2.8.0"
+    "@anthropic-ai/sdk": "0.128.0",
+    "@vercel/blob": "2.8.0",
+    "@vercel/oidc": "3.8.9"
   }
 }

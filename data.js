@@ -26,6 +26,7 @@ window.GUIDE = {
     { date: "2026-10-12", text: "Added the publisher's name (Russell Morton), an accuracy note in the footer, and a feedback form for reporting errors." },
     { date: "2026-10-12", text: "Added a disclaimer to this page and the footer, and an invitation for candidates to request corrections." },
     { date: "2026-10-12", text: "Correction: the Start page said you could vote at any of the eight voting places on October 17. The City's information doesn't say that, so the heading now just lists the places and links to the City's voting place map." },
+    { date: "2026-10-12", text: "Added \"Ask the guide\", an AI assistant (Claude Sonnet 5.5) that answers questions using only this guide's content." },
   ],
   electionDay: "2026-10-17T08:00:00-07:00",
   pollsClose: "2026-10-17T20:00:00-07:00",
