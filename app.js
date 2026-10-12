@@ -135,7 +135,8 @@
       </div>
 
       <div class="panel">
-        <h3>On October 17, vote at any of these eight places</h3>
+        <h3>Voting places on October 17</h3>
+        <p>The City lists these eight places. Check the City's <a href="https://www.mapleridge.ca/media/file/election-voting-place-map-2026" target="_blank" rel="noopener">voting place map</a> or call the elections office at 604-467-7423 if you're not sure where to go.</p>
         <ul class="places">${G.pollingPlaces.map(([n, a]) => `<li>${esc(n)}<small>${esc(a)}</small></li>`).join("")}</ul>
       </div>`;
   }
