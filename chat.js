@@ -147,6 +147,11 @@
   }
 
   launch.addEventListener("click", open);
+  // Close the chat and bring the About page's Disclaimer section into view.
+  $("chat-disclaimer").addEventListener("click", () => {
+    close();
+    setTimeout(() => document.getElementById("disclaimer")?.scrollIntoView({ block: "start" }), 50);
+  });
   $("chat-close").addEventListener("click", close);
   $("chat-reset").addEventListener("click", () => {
     if (busy) return;

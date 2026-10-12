@@ -363,6 +363,7 @@ dialog::backdrop { background: rgb(10 20 16 / 0.55); }
 .chat-form .btn { flex: none; }
 .chat-form .btn:disabled { opacity: 0.6; cursor: wait; }
 .chat-fine { font-size: 0.74rem; color: var(--muted); padding: 0 1rem 0.75rem; }
+.chat-fine a { color: var(--brand); }
 @media (max-width: 640px) {
   .chat-panel { inset: 0; width: 100%; height: 100dvh; border-radius: 0; border: 0; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
   .chat-launch { padding: 0.7rem 1rem; }
@@ -512,7 +513,7 @@ footer.site .wrap { display: flex; flex-direction: column; gap: 0.4rem; }
     <textarea id="chat-input" rows="1" maxlength="500" placeholder="Type your question"></textarea>
     <button class="btn primary" type="submit" id="chat-send">Send</button>
   </form>
-  <p class="chat-fine">Don't include personal details. Questions are sent to Anthropic's Claude through Vercel to generate answers.</p>
+  <p class="chat-fine">Not official election information. Don't include personal details. Questions are sent to Anthropic's Claude through Vercel. <a href="#about" id="chat-disclaimer">Full disclaimer</a></p>
 </section>
 
 <script src="data.js"></script>
