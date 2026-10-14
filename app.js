@@ -43,7 +43,8 @@
     if (Array.isArray(key)) return `<span class="src-group">${key.map((k) => srcLink(k, c)).join("")}</span>`;
     const s = G.sources[key];
     if (!s) return "";
-    const label = key === "cityBio" ? "Candidate's City profile" : `${s.publisher}${s.date ? ", " + new Date(s.date + "T12:00:00Z").toLocaleDateString("en-CA", { month: "short", day: "numeric", timeZone: "UTC" }) : ""}`;
+    const label = key === "cityBio" ? "Candidate's City profile" : key === "candidate" ? "Sent to us by the candidate" : `${s.publisher}${s.date ? ", " + new Date(s.date + "T12:00:00Z").toLocaleDateString("en-CA", { month: "short", day: "numeric", timeZone: "UTC" }) : ""}`;
+    if (!s.url) return `<span class="src">Source: ${esc(label)}</span>`;
     return `<a class="src" href="${esc(srcUrl(key, c))}" target="_blank" rel="noopener">Source: ${esc(label)}</a>`;
   };
 
@@ -611,7 +612,7 @@
         <h3>Sources and what we used from each</h3>
         <div class="scroll-x"><table>
           <thead><tr><th>Source</th><th>Used for</th></tr></thead>
-          <tbody>${Object.values(G.sources).map((s) => `<tr><td style="min-width:14rem"><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a><br><span class="muted" style="font-size:.85rem">${esc(s.publisher)}${s.date ? ", " + esc(s.date) : ""}</span></td><td style="min-width:16rem">${esc(s.usedFor || "")}</td></tr>`).join("")}</tbody>
+          <tbody>${Object.values(G.sources).map((s) => `<tr><td style="min-width:14rem">${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>` : esc(s.title)}<br><span class="muted" style="font-size:.85rem">${esc(s.publisher)}${s.date ? ", " + esc(s.date) : ""}</span></td><td style="min-width:16rem">${esc(s.usedFor || "")}</td></tr>`).join("")}</tbody>
         </table></div>
         <p class="muted" style="font-size:.88rem">All sources were accessed on ${esc(G.lastChecked)}. Each candidate's individual City profile is linked from their detail view.</p>
       </div>
