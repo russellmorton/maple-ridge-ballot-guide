@@ -25,6 +25,7 @@ rec: { stance: "opposes", text: "What they said…", source: "mrnCouncilForum" }
 
 - `stance` is one of `supports`, `opposes`, `mixed`, `priority`, `none`.
 - `source` must be a key in `sources`. If there's no source, use `stance: "none"` and leave out `text`.
+- When a candidate sends their position directly, quote it word for word with `source: "candidate"` (shown as "Sent to us by the candidate", with no link).
 - Update `lastChecked` at the top of the file when you re-verify.
 
 ## Run locally

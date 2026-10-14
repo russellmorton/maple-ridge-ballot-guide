@@ -40,7 +40,7 @@ function buildGuideText(G) {
     const s = G.sources[key];
     if (!s) return "";
     const url = key === "cityBio" && c?.profile ? `${s.url}/${c.profile}` : s.url;
-    return `${s.publisher}${s.date ? `, ${s.date}` : ""}: ${s.title} <${url}>`;
+    return `${s.publisher}${s.date ? `, ${s.date}` : ""}: ${s.title}${url ? ` <${url}>` : ""}`;
   };
   const srcList = (k, c) => (Array.isArray(k) ? k : [k]).map((x) => src(x, c)).filter(Boolean).join("; ");
   const money = (n) => `$${(n / 1e6).toLocaleString("en-CA")} million`;
@@ -115,7 +115,7 @@ function buildGuideText(G) {
   L.push(`How it was made: ${G.review.aiDraft} ${G.review.aiCheck} Human review: ${G.review.human}`);
   L.push("Known gaps: candidates' own websites and social media were not reviewed (only City profiles and Maple Ridge News). Derek Jeffery appeared on the City's September 11 nominations list but is not on the official Declaration of Election (September 21), so he is not on the ballot. Lou Jose says his position on the recreation projects is on VoteJose.ca, which the guide hasn't reviewed. Lou Jose, Andrew Laity and Ryan Svendsen did not attend the September 23 all-candidates meeting.");
   L.push(`Full method and sources: ${SITE}/#about. Report an error: ${SITE}/#feedback.`);
-  L.push("Sources used: " + Object.values(G.sources).map((s) => `${s.publisher}, ${s.title} <${s.url}>`).join("; "));
+  L.push("Sources used: " + Object.values(G.sources).map((s) => `${s.publisher}, ${s.title}${s.url ? ` <${s.url}>` : ""}`).join("; "));
   return L.join("\n");
 }
 
