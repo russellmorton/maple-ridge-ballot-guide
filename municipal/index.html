@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Municipal Election, Oct 17 · Maple Ridge Ballot Guide</title>
+<meta name="description" content="An independent, sourced guide to the October 17, 2026 Maple Ridge election: every candidate, the three recreation borrowing questions, and side-by-side comparisons.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<script>
+  // Start from the visitor's saved choice, otherwise their device setting.
+  (function () {
+    let t = null;
+    try { t = localStorage.getItem("mr-theme"); } catch {}
+    if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+<link rel="stylesheet" href="/guide.css">
+</head>
+<body data-guide="municipal">
+
+<nav class="guide-switch" aria-label="Election guides">
+  <div class="wrap">
+    <a href="/">All guides</a>
+    <a href="/municipal" aria-current="page">Municipal <span>Oct 17</span></a>
+    <a href="/provincial">Provincial <span>Oct 24</span></a>
+  </div>
+</nav>
+<div class="mast">
+  <div class="wrap mast-top">
+    <div class="brand">
+      <span class="eyebrow">An independent voter guide. Not a City of Maple Ridge website.</span>
+      <div class="brand-name">Maple Ridge <span>Ballot Guide</span></div>
+    </div>
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode">
+      <svg class="i-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M20.4 14.6A8.5 8.5 0 0 1 9.4 3.6a.75.75 0 0 0-1-.9A10 10 0 1 0 21.3 15.6a.75.75 0 0 0-.9-1Z"/></svg>
+      <svg class="i-sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></g></svg>
+    </button>
+    <div class="countdown" id="countdown" aria-live="polite"></div>
+  </div>
+</div>
+<div class="tabs-bar">
+  <nav class="wrap tabs" aria-label="Sections">
+    <a href="#start">Start here</a>
+    <a href="#questions">Ballot questions</a>
+    <a href="#candidates">Candidates</a>
+    <a href="#compare">Compare</a>
+    <a href="#ballot">My ballot<span class="count" id="ballot-count" hidden></span></a>
+    <a href="#about">About &amp; sources</a>
+  </nav>
+</div>
+
+<main class="wrap">
+  <section data-view="start" id="view-start"></section>
+  <section data-view="questions" id="view-questions" hidden></section>
+  <section data-view="candidates" id="view-candidates" hidden></section>
+  <section data-view="compare" id="view-compare" hidden></section>
+  <section data-view="ballot" id="view-ballot" hidden></section>
+  <section data-view="about" id="view-about" hidden></section>
+  <section data-view="feedback" id="view-feedback" hidden></section>
+</main>
+
+<dialog id="cand-dialog" aria-labelledby="dlg-name"></dialog>
+<div id="print-sheet" class="print-sheet" aria-hidden="true"></div>
+
+<footer class="site">
+  <div class="wrap">
+    <p><strong>Published by Russell Morton.</strong> Follow updates on X at <a href="https://x.com/russell_morton" target="_blank" rel="noopener">@russell_morton</a>. <a href="#feedback">Send feedback or report an error</a>.</p>
+    <p>The code for this site is public on <a href="https://github.com/russellmorton/maple-ridge-ballot-guide" target="_blank" rel="noopener">GitHub</a>, so anyone can see every change.</p>
+    <p>This guide is for general information only and comes with no guarantee. It may contain errors. Check the City of Maple Ridge's official election information before you vote. <a href="#about">Full disclaimer</a>.</p>
+    <p>Independent and non-partisan. Not affiliated with the City of Maple Ridge, School District 42, any candidate or any elector organization.</p>
+    <p>Candidate summaries were drafted with AI assistance and link to their sources. <a href="#about">How this guide was made</a>.</p>
+    <p>Official election information: <a href="https://www.mapleridge.ca/your-government/municipal-elections" target="_blank" rel="noopener">mapleridge.ca/your-government/municipal-elections</a> · Elections office 604-467-7423 · Election@MapleRidge.ca</p>
+    <p id="checked"></p>
+  </div>
+</footer>
+
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<button class="chat-launch" id="chat-launch" type="button" aria-expanded="false" aria-controls="chat-panel">
+  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg>
+  Ask the guide
+</button>
+<section class="chat-panel" id="chat-panel" role="dialog" aria-labelledby="chat-title" hidden>
+  <header class="chat-head">
+    <div>
+      <h2 id="chat-title">Ask the guide</h2>
+      <p>AI answers using only this guide's content. It can make mistakes, so check the links it gives.</p>
+    </div>
+    <div class="chat-head-actions">
+      <button class="linkish" type="button" id="chat-reset">New chat</button>
+      <button class="chat-close" type="button" id="chat-close" aria-label="Close chat">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </header>
+  <div class="chat-log" id="chat-log" aria-live="polite"></div>
+  <form class="chat-form" id="chat-form">
+    <label class="sr-only" for="chat-input">Your question</label>
+    <textarea id="chat-input" rows="1" maxlength="500" placeholder="Type your question"></textarea>
+    <button class="btn primary" type="submit" id="chat-send">Send</button>
+  </form>
+  <p class="chat-fine">Not official election information. Don't include personal details. Questions are sent to Anthropic's Claude through Vercel. <a href="#about" id="chat-disclaimer">Full disclaimer</a></p>
+</section>
+
+<script src="/theme.js"></script>
+<script src="/municipal/data.js"></script>
+<script src="/municipal/app.js"></script>
+<script src="/chat.js"></script>
+</body>
+</html>
