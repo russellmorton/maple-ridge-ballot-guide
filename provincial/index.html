@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Provincial Election, Oct 24 · Maple Ridge Ballot Guide</title>
+<meta name="description" content="An independent, sourced guide to the October 24, 2026 B.C. provincial election in Maple Ridge, Pitt Meadows and the ridings next door: find your riding, every candidate, and what each party is promising.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<script>
+  // Start from the visitor's saved choice, otherwise their device setting.
+  (function () {
+    let t = null;
+    try { t = localStorage.getItem("mr-theme"); } catch {}
+    if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+<link rel="stylesheet" href="/guide.css">
+<style>
+/* Provincial guide: the shared layout with its own palette, so it's never
+   mistaken for the municipal guide. Plum and ochre were picked because no
+   party on these ballots campaigns in them; parties get no colours at all. */
+:root {
+  --paper: #f5f3f8; --sheet: #ffffff; --ink: #1f1830; --muted: #5d5670; --line: #ddd7e6;
+  --brand: #5a3d8a; --brand-soft: #eee8f6; --brand-deep: #3f2a63;
+  --mark: #5a3d8a; --mark-fill: #5a3d8a; --mark-soft: #f3eefa;
+  --ochre: #8a5d00; --ochre-soft: #f8efdc;
+  --mixed: #8a5d00; --mixed-bg: #f8efdc;
+  --bar: #5a3d8a; --bar-dim: #b9adcf;
+  --on-strong: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #141019; --sheet: #1d1726; --ink: #ece7f4; --muted: #aaa1bb; --line: #3a3149;
+    --brand: #c2adec; --brand-soft: #2d2342; --brand-deep: #d9cbf5;
+    --mark: #c2adec; --mark-fill: #7d5cb8; --mark-soft: #2a2138;
+    --ochre: #e6b84f; --ochre-soft: #3a2d0e; --mixed: #e6b84f; --mixed-bg: #3a2d0e;
+    --bar: #a98be0; --bar-dim: #5a4d70; --on-strong: #141019;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #141019; --sheet: #1d1726; --ink: #ece7f4; --muted: #aaa1bb; --line: #3a3149;
+  --brand: #c2adec; --brand-soft: #2d2342; --brand-deep: #d9cbf5;
+  --mark: #c2adec; --mark-fill: #7d5cb8; --mark-soft: #2a2138;
+  --ochre: #e6b84f; --ochre-soft: #3a2d0e; --mixed: #e6b84f; --mixed-bg: #3a2d0e;
+  --bar: #a98be0; --bar-dim: #5a4d70; --on-strong: #141019;
+  color-scheme: dark;
+}
+.countdown { border-color: var(--mark-fill); }
+.countdown .cd-text span { color: var(--muted); }
+.countdown .cd-text span.adv { color: var(--ochre); font-weight: 700; }
+
+/* ── Find your riding ── */
+.finder { gap: 0.9rem; border-top: 4px solid var(--brand); }
+.finder form { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.finder input[type="text"] { flex: 1 1 260px; min-width: 0; padding: 0.65rem 0.8rem; border-radius: var(--r); border: 1px solid var(--line); background: var(--sheet); color: var(--ink); font: inherit; }
+.finder .btn.primary:disabled { opacity: 0.6; cursor: wait; }
+.finder .fine { font-size: 0.82rem; color: var(--muted); }
+.result { display: flex; flex-direction: column; gap: 0.6rem; padding: 0.9rem 1rem; border-radius: var(--r); background: var(--brand-soft); }
+.result h3 { font-size: 1.3rem; }
+.result.warn { background: var(--ochre-soft); }
+.result .who-list { display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; margin: 0; padding: 0; list-style: none; font-size: 0.95rem; }
+.result .actions, .riding .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.pick-riding { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+.pick-riding button { font: 600 0.86rem var(--body); padding: 0.35rem 0.75rem; border-radius: 999px; border: 1px solid var(--line); background: var(--sheet); color: var(--ink); cursor: pointer; }
+.pick-riding button:hover { border-color: var(--brand); }
+.pick-riding button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--on-strong); }
+.badge.mine { border-color: var(--brand); color: var(--brand); }
+.badge.inc { border-color: var(--ochre); color: var(--ochre); }
+
+/* ── Ridings ── */
+.riding { background: var(--sheet); border: 1px solid var(--line); border-radius: var(--r); padding: 1.1rem 1.2rem; display: flex; flex-direction: column; gap: 0.9rem; scroll-margin-top: 4rem; }
+.riding.mine { border-color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand); }
+.riding > header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem 1rem; border-bottom: 2px solid var(--ink); padding-bottom: 0.45rem; }
+.riding > header h3 { font-size: 1.45rem; }
+.riding-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 1.2rem 2rem; }
+.cand-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.cand-rows li { display: flex; align-items: center; gap: 0.7rem; padding: 0.5rem 0; border-top: 1px dashed var(--line); }
+.cand-rows li:first-child { border-top: 0; }
+.cand-rows .mono-av { width: 2.2rem; height: 2.2rem; font-size: 0.9rem; }
+.cand-rows .who { display: flex; flex-direction: column; min-width: 0; }
+.cand-rows .who small { color: var(--muted); font-size: 0.85rem; }
+.group-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem 1rem; }
+.group-head h3 { font-size: 1.15rem; color: var(--muted); font-stretch: 100%; font-family: var(--body); font-weight: 700; }
+
+/* 2024 results: one series, so one hue; the winner's bar is full strength. */
+.results { display: flex; flex-direction: column; gap: 0.45rem; margin: 0; padding: 0; list-style: none; }
+.results li { display: grid; grid-template-columns: minmax(0, 1fr) 3.4rem; gap: 0.15rem 0.6rem; align-items: center; font-size: 0.9rem; }
+.results .lbl { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 0.5rem; }
+.results .lbl small { color: var(--muted); white-space: nowrap; }
+.results .track { height: 12px; border-radius: 0 4px 4px 0; background: transparent; position: relative; }
+.results .fill { display: block; height: 100%; border-radius: 0 4px 4px 0; background: var(--bar-dim); min-width: 2px; }
+.results li.won .fill { background: var(--bar); }
+.results .pct { font: 500 0.85rem var(--mono); text-align: right; }
+.margin-note { font-size: 0.88rem; color: var(--muted); }
+
+/* Riding map (outline only; no party colours) */
+.map-wrap { background: var(--sheet); border: 1px solid var(--line); border-radius: var(--r); padding: 0.6rem; }
+.map-wrap svg { display: block; width: 100%; height: auto; max-height: 520px; }
+.map-wrap path { fill: var(--brand-soft); stroke: var(--sheet); stroke-width: 2px; vector-effect: non-scaling-stroke; cursor: pointer; }
+.map-wrap path.home { fill: color-mix(in srgb, var(--brand) 28%, var(--sheet)); }
+.map-wrap path:hover, .map-wrap path:focus-visible { fill: color-mix(in srgb, var(--brand) 45%, var(--sheet)); outline: none; }
+.map-wrap path.mine { fill: var(--brand); }
+.map-wrap text { font: 600 13px var(--body); fill: var(--ink); paint-order: stroke; stroke: var(--sheet); stroke-width: 3px; pointer-events: none; }
+.map-wrap text.on-mine { fill: var(--on-strong); stroke: var(--brand); }
+
+/* ── Parties ── */
+.party-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 1rem; }
+.party-card .sub { font-size: 0.9rem; color: var(--muted); }
+.issue-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.issue-chips button { font: 600 0.86rem var(--body); padding: 0.4rem 0.8rem; border-radius: 999px; border: 1px solid var(--line); background: var(--sheet); color: var(--ink); cursor: pointer; }
+.issue-chips button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--on-strong); }
+.platforms { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 1rem; }
+.platform { background: var(--sheet); border: 1px solid var(--line); border-radius: var(--r); padding: 0.95rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
+.platform h4 { font: 700 1.05rem/1.2 var(--display); font-stretch: 90%; margin: 0; }
+.platform ul { margin: 0; padding-left: 1.05rem; display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.93rem; }
+.platform .none { color: var(--muted); font-size: 0.92rem; }
+.qgrid td, .qgrid th { text-align: center; }
+.qgrid td:first-child, .qgrid th:first-child { text-align: left; min-width: 13rem; }
+
+/* ── Vote plan ── */
+.checklist { list-style: none; padding: 0 !important; }
+.checklist li { display: flex; gap: 0.5rem; align-items: baseline; }
+.checklist li::before { content: "☐"; font-size: 1.05rem; line-height: 1; }
+
+@media (max-width: 640px) {
+  .pick-riding { gap: 0.35rem; }
+  .riding { padding: 0.95rem; }
+}
+
+/* ── Printable vote plan ── */
+@media print {
+  .ps-line .ps-party { font: 400 8pt var(--body); margin-left: auto; }
+  .ps-plan dt { font-weight: 700; }
+  .ps-plan dd { margin: 0 0 6pt; }
+}
+</style>
+</head>
+<body data-guide="provincial">
+
+<nav class="guide-switch" aria-label="Election guides">
+  <div class="wrap">
+    <a href="/">All guides</a>
+    <a href="/municipal">Municipal <span>Oct 17</span></a>
+    <a href="/provincial" aria-current="page">Provincial <span>Oct 24</span></a>
+  </div>
+</nav>
+<div class="mast">
+  <div class="wrap mast-top">
+    <div class="brand">
+      <span class="eyebrow">An independent voter guide. Not an Elections BC website.</span>
+      <div class="brand-name">Maple Ridge <span>Ballot Guide</span></div>
+    </div>
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode">
+      <svg class="i-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M20.4 14.6A8.5 8.5 0 0 1 9.4 3.6a.75.75 0 0 0-1-.9A10 10 0 1 0 21.3 15.6a.75.75 0 0 0-.9-1Z"/></svg>
+      <svg class="i-sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></g></svg>
+    </button>
+    <div class="countdown" id="countdown" aria-live="polite"></div>
+  </div>
+</div>
+<div class="tabs-bar">
+  <nav class="wrap tabs" aria-label="Sections">
+    <a href="#start">Start here</a>
+    <a href="#ridings">Ridings</a>
+    <a href="#candidates">Candidates</a>
+    <a href="#parties">Parties</a>
+    <a href="#compare">Compare</a>
+    <a href="#plan">My vote plan<span class="count" id="plan-count" hidden></span></a>
+    <a href="#about">About &amp; sources</a>
+  </nav>
+</div>
+
+<main class="wrap">
+  <section data-view="start" id="view-start"></section>
+  <section data-view="ridings" id="view-ridings" hidden></section>
+  <section data-view="candidates" id="view-candidates" hidden></section>
+  <section data-view="parties" id="view-parties" hidden></section>
+  <section data-view="compare" id="view-compare" hidden></section>
+  <section data-view="plan" id="view-plan" hidden></section>
+  <section data-view="about" id="view-about" hidden></section>
+  <section data-view="feedback" id="view-feedback" hidden></section>
+</main>
+
+<dialog id="cand-dialog" aria-labelledby="dlg-name"></dialog>
+<div id="print-sheet" class="print-sheet" aria-hidden="true"></div>
+
+<footer class="site">
+  <div class="wrap">
+    <p><strong>Published by Russell Morton.</strong> Follow updates on X at <a href="https://x.com/russell_morton" target="_blank" rel="noopener">@russell_morton</a>. <a href="#feedback">Send feedback or report an error</a>.</p>
+    <p>The code for this site is public on <a href="https://github.com/russellmorton/maple-ridge-ballot-guide" target="_blank" rel="noopener">GitHub</a>, so anyone can see every change.</p>
+    <p>This guide is for general information only and comes with no guarantee. It may contain errors. Check Elections BC's official information before you vote. <a href="#about">Full disclaimer</a>.</p>
+    <p>Independent and non-partisan. Not affiliated with Elections BC, the Government of B.C., any party or any candidate.</p>
+    <p>Candidate and platform summaries were drafted with AI assistance and link to their sources. <a href="#about">How this guide was made</a>.</p>
+    <p id="official"></p>
+    <p id="checked"></p>
+  </div>
+</footer>
+
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<button class="chat-launch" id="chat-launch" type="button" aria-expanded="false" aria-controls="chat-panel">
+  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg>
+  Ask the guide
+</button>
+<section class="chat-panel" id="chat-panel" role="dialog" aria-labelledby="chat-title" hidden>
+  <header class="chat-head">
+    <div>
+      <h2 id="chat-title">Ask the guide</h2>
+      <p>AI answers using only this guide's provincial content. It can make mistakes, so check the links it gives.</p>
+    </div>
+    <div class="chat-head-actions">
+      <button class="linkish" type="button" id="chat-reset">New chat</button>
+      <button class="chat-close" type="button" id="chat-close" aria-label="Close chat">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </header>
+  <div class="chat-log" id="chat-log" aria-live="polite"></div>
+  <form class="chat-form" id="chat-form">
+    <label class="sr-only" for="chat-input">Your question</label>
+    <textarea id="chat-input" rows="1" maxlength="500" placeholder="Type your question"></textarea>
+    <button class="btn primary" type="submit" id="chat-send">Send</button>
+  </form>
+  <p class="chat-fine">Not official election information. Don't include personal details, including your address. Questions are sent to Anthropic's Claude through Vercel. <a href="#about" id="chat-disclaimer">Full disclaimer</a></p>
+</section>
+
+<script src="/theme.js"></script>
+<script src="/provincial/data.js"></script>
+<script src="/provincial/map.js"></script>
+<script src="/provincial/app.js"></script>
+<script src="/chat.js"></script>
+</body>
+</html>
