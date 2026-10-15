@@ -33,20 +33,27 @@ test("provincial: ridings, parties, positions and sources resolve", () => {
   const parties = new Set(G.parties.map((p) => p.id));
   const issues = new Set(G.issues.map((i) => i.id));
   const questions = new Set((G.questions || []).map((q) => q.id));
-  const src = (where, k) => { for (const s of keys(k)) assert.ok(G.sources[s], `${where}: source ${s}`); };
+  const src = (where, k, c) => {
+    for (const s of keys(k)) {
+      // "profile" is the candidate's own party page.
+      if (s === "profile") assert.ok(c?.profile?.url, `${where}: source "profile" but no profile url`);
+      else assert.ok(G.sources[s], `${where}: source ${s}`);
+    }
+  };
 
   for (const c of G.candidates) {
     assert.ok(!ids.has(c.id), `duplicate candidate id ${c.id}`);
     ids.add(c.id);
     assert.ok(ridings.has(c.riding), `${c.id}: riding ${c.riding}`);
     assert.ok(c.party === null || parties.has(c.party), `${c.id}: party ${c.party}`);
-    src(`${c.id} background`, c.backgroundSource);
+    assert.ok(!c.background || c.backgroundSource, `${c.id}: background needs a source`);
+    src(`${c.id} background`, c.backgroundSource, c);
     for (const [k, p] of Object.entries(c.positions || {})) {
       assert.ok(issues.has(k), `${c.id}: issue ${k}`);
       assert.ok(STANCES.has(p.stance), `${c.id}.${k}: stance ${p.stance}`);
       assert.ok(p.stance === "none" || p.text, `${c.id}.${k}: a stance needs text`);
       assert.ok(!p.text || p.source, `${c.id}.${k}: text needs a source`);
-      src(`${c.id}.${k}`, p.source);
+      src(`${c.id}.${k}`, p.source, c);
     }
   }
   for (const r of G.ridings) {
@@ -57,8 +64,11 @@ test("provincial: ridings, parties, positions and sources resolve", () => {
       assert.ok(Number.isFinite(row.votes) && Number.isFinite(row.pct), `${r.id}: 2024 row ${row.name}`);
     }
     src(`${r.id} 2024`, r.result2024?.source);
+    src(`${r.id} note`, r.noteSource);
+    src(`${r.id} area`, r.areaSource);
   }
   for (const p of G.parties) {
+    src(`${p.id} summary`, p.summarySource);
     for (const [k, pos] of Object.entries(p.positions || {})) {
       assert.ok(issues.has(k), `${p.id}: issue ${k}`);
       assert.ok(Array.isArray(pos.points), `${p.id}.${k}: points`);

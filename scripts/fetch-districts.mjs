@@ -62,7 +62,7 @@ const build = (tol) =>
   });
 
 const fetched = new Date().toISOString().slice(0, 10);
-const source = "DataBC, Current Provincial Electoral Districts of British Columbia (WHSE_ADMIN_BOUNDARIES.EBC_PROV_ELECTORAL_DIST_SVW)";
+const source = "DataBC, Current Provincial Electoral Districts of British Columbia";
 const detailed = build(5);
 const light = build(60);
 

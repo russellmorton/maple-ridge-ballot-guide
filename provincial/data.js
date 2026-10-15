@@ -1,121 +1,907 @@
 // B.C. provincial election, October 24, 2026: all content for the provincial guide.
 // Every position must point at a source key. If no source exists, use stance "none".
 // Candidate stances: supports | opposes | mixed | priority | none
-// Party platforms: `points` (short commitments) per issue, each with a source.
-//
-// DRAFT: research in progress. Nothing below has been checked against the
-// original pages yet; don't publish until review.status is "ai-checked".
-//
-// Still to do (read original pages, not search summaries; quotes word for word):
-// 1. Ridings: Maple Ridge-Pitt Meadows, Maple Ridge East, plus every riding that
-//    shares a boundary with them (check with DataBC boundaries; likely Port
-//    Coquitlam, Coquitlam-Burke Mountain, Abbotsford-Mission, Langley-Walnut
-//    Grove; decide on any wilderness-only neighbours). Then run
-//    scripts/fetch-districts.mjs.
-// 2. Candidates: Elections BC's official candidate list for Oct 24, 2026, in
-//    ballot order. Backgrounds and positions from local news, debates,
-//    candidate and party pages.
-// 3. 2024 results per riding: Elections BC Statement of Votes (2024).
-// 4. Parties: leaders, platforms by issue, seats at dissolution (order parties
-//    by those seats). Context: why the election was called, neutrally, with
-//    the stated reason and the main criticism, each sourced.
-// 5. Voting: hours, where you can vote, ID and vouching, mail ballots, time
-//    off work, Elections BC phone and Where to Vote URL. Then check the
-//    provincial column of the table in /landing.js matches.
-// 6. Party colours: confirm no party on these ballots uses plum or ochre.
-// 7. A second-model fact-check of every claim against page text, then fill
-//    `review` and `changes`.
+// Party platforms: `points` (short commitments) per issue, with a source.
+// Source key "profile" means the candidate's own party page (candidate.profile).
+// Last checked against sources: 2026-10-15
 
 window.GUIDE = {
-  lastChecked: null,
+  lastChecked: "2026-10-15",
 
+  // Shown at the top of "About & sources". Update after each review.
   review: {
-    status: "pending", // pending | ai-checked | done
-    aiDraft: "",
-    aiCheck: "",
+    status: "ai-checked", // pending | ai-checked | done
+    aiDraft: "All candidate and platform summaries were drafted on 2026-10-15 with an AI assistant (Claude, by Anthropic), which read each source page's text directly rather than through summaries.",
+    aiCheck: "On 2026-10-15 a script checked all 231 quotations and numbers in the guide against the saved text of the source each one cites. Every quotation was found in its source; the only number mismatches were rounding and numbers the source spells out. The assistant also re-read every summary against its source and corrected six that had drifted (listed in the change log).",
     human: "Not yet reviewed by a person.",
   },
   maintainer: "Russell Morton",
-  changes: [],
+  changes: [
+    { date: "2026-10-15", text: "First draft of the provincial guide." },
+    { date: "2026-10-15", text: "Fact-check corrections before publishing: Jeff Monds's poster priorities are no longer shown as a direct quote; Holly Isaac's and Daniel Kite's quotes now start where the original sentence does; the Conservatives' PST pledge covers Canadian (not only B.C.) alcohol; the Libertarians' Crown land point uses their word, \"dispersing\"; and the Greens on expanding involuntary treatment changed from No to Partly, since their platform stresses voluntary care and stronger protections but doesn't say it opposes expansion." },
+  ],
 
   electionDay: "2026-10-24T08:00:00-07:00",
   pollsClose: "2026-10-24T20:00:00-07:00",
   advanceDates: ["2026-10-16", "2026-10-17", "2026-10-18", "2026-10-19", "2026-10-20", "2026-10-21"],
 
-  // How the election works and how to vote. Filled from Elections BC.
+  // How to vote, from Elections BC's pages.
   voting: {
-    hours: null,           // e.g. "Advance voting and General Voting Day: 8 am to 8 pm."
-    mailText: null,        // how and by when to ask for and return a mail ballot
-    workTime: null,        // time off work to vote
-    eligibility: [],       // list items
-    id: [],                // what to bring, list items
-    where: null,           // where you can vote
-    phone: null,           // Elections BC phone
-    whereToVoteUrl: null,  // Elections BC's own riding and voting-place lookup
-    source: "electionsBC",
+    hours: "Advance voting runs October 16 to 21, 8 a.m. to 8 p.m. Final Voting Day is Saturday, October 24, 8 a.m. to 8 p.m. Not every advance voting place is open every day.",
+    mailText: "Ask for a vote-by-mail package at elections.bc.ca/votebymail or by calling 1-800-661-8683. The last day to ask online or by phone is October 18. Elections BC must receive your completed package by 8 p.m. on October 24; you can also drop it off at any district electoral office or voting place.",
+    workTime: "You're entitled to four hours in a row free from work during voting hours. That doesn't always mean time off: if your shift ends at 4 p.m., you already have it.",
+    eligibility: ["a Canadian citizen", "18 or older on October 24, 2026, and", "living in B.C. since April 23, 2026"],
+    id: [
+      "One piece of ID with your name, photo and address, such as a B.C. driver's licence, BCID or BC Services Card with photo",
+      "Or two documents that both show your name, with at least one showing your current address, such as a utility bill, bank statement or your Where to Vote card",
+      "No ID? A registered voter who lives in your riding, or a close relative, can vouch for you. They need their own ID",
+    ],
+    where: "During advance voting you can vote at any advance voting place in B.C. On October 24 you have an assigned voting place, shown on your Where to Vote card, but you can vote at another one if it's more convenient. You can also vote at any district electoral office until 4 p.m. on October 24.",
+    accessible: "All advance voting places are wheelchair accessible. You can get help marking your ballot, bring a friend or interpreter, or vote outside the building. Assisted telephone voting is available for voters who meet Elections BC's criteria, such as sight loss.",
+    phone: "1-800-661-8683",
+    whereToVoteUrl: "https://wheretovote.elections.bc.ca/",
+    source: ["ebcElection", "ebcWays", "ebcId", "ebcWhere"],
   },
 
   context: {
     seats: 93,
     majority: 47,
-    why: null,             // neutral account of why the election is early, with sources
-    standings: [],         // [{ party, seats }] at dissolution
-    source: null,
+    why: "Premier David Eby dissolved the legislature on September 22, 2026, less than two years into a four-year term. He said B.C. faces an \"existential moment\" as U.S. President Donald Trump's tariffs damage the economy. Critics, particularly on the right, called the call \"opportunistic\", coming two days after Conservative leader Kerry-Lynne Findlay resigned amid turmoil in her party. Green leader Emily Lowan had said a snap vote would be a \"disappointing\" and \"disgusting\" attempt to capitalize on the fractured opposition, and local government leaders had asked him not to overlap the October 17 municipal elections.",
+    source: ["vicCall", "mrnFiveWay"],
   },
 
   sources: {
-    electionsBC: {
-      title: "2026 Provincial Election",
+    ebcElection: {
+      short: "Elections BC, 2026 election",
+      title: "2026 Provincial Election: key dates and who can vote",
       publisher: "Elections BC",
       url: "https://elections.bc.ca/2026-provincial-election/",
-      usedFor: "Election dates, voting rules and the official candidate list.",
+      usedFor: "Election dates, eligibility, the vote-by-mail deadline and the final count dates.",
+    },
+    ebcWays: {
+      short: "Elections BC, Ways to Vote",
+      title: "Ways to Vote",
+      publisher: "Elections BC",
+      url: "https://elections.bc.ca/voting/what-you-need-to-vote/ways-to-vote/",
+      usedFor: "Advance voting, Final Voting Day, district electoral offices and voting by mail.",
+    },
+    ebcId: {
+      short: "Elections BC, Voter ID",
+      title: "Voter ID",
+      publisher: "Elections BC",
+      url: "https://elections.bc.ca/voting/what-you-need-to-vote/voter-id/",
+      usedFor: "The three ways to prove who you are and where you live, including vouching.",
+    },
+    ebcWhere: {
+      short: "Elections BC, Where to Vote",
+      title: "Where to Vote",
+      publisher: "Elections BC",
+      url: "https://elections.bc.ca/voting/where-to-vote/",
+      usedFor: "Voting at any advance voting place, and at another place on Final Voting Day.",
+    },
+    ebcTimeOff: {
+      short: "Elections BC, time off work",
+      title: "Time Off Work for Voting",
+      publisher: "Elections BC",
+      url: "https://elections.bc.ca/2026-provincial-election/time-off-work-for-voting/",
+      usedFor: "The four consecutive hours free from work to vote.",
+    },
+    ebcAccess: {
+      short: "Elections BC, accessibility",
+      title: "Voting Accessibility",
+      publisher: "Elections BC",
+      url: "https://elections.bc.ca/voting/voting-accessibility/",
+      usedFor: "Help marking a ballot, assisted telephone voting and accessible voting places.",
+    },
+    ebcAdvance: {
+      short: "Elections BC, advance voting places",
+      title: "Advance voting places, 2026 Provincial General Election (PDF)",
+      publisher: "Elections BC",
+      url: "https://elections.bc.ca/2026election/advance-voting-places-2026.pdf",
+      usedFor: "The advance voting places in each riding and the days each is open.",
+    },
+    ebcOffices: {
+      short: "Elections BC, district offices",
+      title: "District electoral offices, 2026 Provincial General Election (PDF)",
+      publisher: "Elections BC",
+      url: "https://elections.bc.ca/docs/2026-district-electoral-offices.pdf",
+      usedFor: "Each riding's district electoral office, phone and email.",
+    },
+    ebcCandidates: {
+      short: "Elections BC candidate list, Oct 14",
+      title: "Provincial Candidate List, 2026 Provincial General Election (PDF)",
+      publisher: "Elections BC",
+      date: "2026-10-14",
+      url: "https://www.elections.bc.ca/docs/fin/GE-2026-10-24-Candidate-Website-Report.PDF",
+      usedFor: "The official list of candidates and affiliations in every riding. Every name in this guide is on it. Also the source of each party's candidate count, counted by this guide.",
+    },
+    ebcParties: {
+      short: "Elections BC party list, Oct 14",
+      title: "Registered Political Parties: Information (PDF)",
+      publisher: "Elections BC",
+      date: "2026-10-14",
+      url: "https://elections.bc.ca/docs/fin/Registered-Political-Parties-Information.pdf",
+      usedFor: "Each party's registered name, ballot name and leader.",
+    },
+    ebcResults2024: {
+      short: "Elections BC, 2024 results",
+      title: "Statement of Votes, 2024 Provincial General Election (PDF)",
+      publisher: "Elections BC",
+      url: "https://www3.elections.bc.ca/docs/rpt/statement-of-votes-2024-provincial-election.pdf",
+      usedFor: "Final 2024 results in each riding.",
+    },
+    databc: {
+      short: "DataBC boundaries",
+      title: "Current Provincial Electoral Districts of British Columbia",
+      publisher: "DataBC, Government of B.C.",
+      url: "https://catalogue.data.gov.bc.ca/dataset/provincial-electoral-districts-of-british-columbia",
+      usedFor: "The riding boundaries used by Find your riding, the riding map, and to work out which ridings are next door to Maple Ridge.",
+    },
+    geocoder: {
+      short: "BC Address Geocoder",
+      title: "BC Address Geocoder",
+      publisher: "Government of B.C.",
+      url: "https://www2.gov.bc.ca/gov/content/data/geographic-data-services/location-services/geocoder",
+      usedFor: "Turning the address you type into a point on the map, for Find your riding.",
+    },
+
+    // Parties
+    ndpPlan: {
+      short: "BC NDP platform",
+      title: "Build BC Strong (platform)",
+      publisher: "BC NDP",
+      url: "https://www.bcndp.ca/plan",
+      usedFor: "The NDP's platform commitments. Read on 2026-10-15; the party says it will keep adding to the page during the campaign.",
+    },
+    ndpCosting: {
+      short: "BC NDP costing plan",
+      title: "BC Strong Fiscal & Costing Plan (PDF)",
+      publisher: "BC NDP",
+      url: "https://www.bcndp.ca/sites/default/files/bc_strong_fiscal_and_costing_plan.pdf",
+      usedFor: "The NDP's tax changes and projected deficits.",
+    },
+    conPlan: {
+      short: "Conservative plan page",
+      title: "Our Plan",
+      publisher: "Conservative Party of BC",
+      url: "https://conservativebc.ca/plan/",
+      usedFor: "The Conservatives' list of platform announcements, read on 2026-10-15.",
+    },
+    conTax: {
+      short: "Conservatives, $1000 Tax Cut",
+      title: "$1000 Tax Cut",
+      publisher: "Conservative Party of BC",
+      date: "2026-10-08",
+      url: "https://conservativebc.ca/plan/conservatives-will-cut-your-taxes-by-1000/",
+      usedFor: "The basic personal exemption increase.",
+    },
+    conNoNewTaxes: {
+      short: "Conservatives, No New Taxes",
+      title: "No New Taxes",
+      publisher: "Conservative Party of BC",
+      date: "2026-10-05",
+      url: "https://conservativebc.ca/plan/conservative-party-of-bc-pledges-no-new-taxes-on-british-columbians/",
+      usedFor: "The no-new-taxes pledge.",
+    },
+    conPst: {
+      short: "Conservatives, No PST on Canadian Alcohol",
+      title: "No PST on Canadian Alcohol",
+      publisher: "Conservative Party of BC",
+      date: "2026-10-05",
+      url: "https://conservativebc.ca/plan/conservatives-to-remove-pst-from-canadian-alcohol/",
+      usedFor: "Removing PST on Canadian beer, wine and spirits during the trade war.",
+    },
+    conInsurance: {
+      short: "Conservatives, Insurance",
+      title: "Insurance",
+      publisher: "Conservative Party of BC",
+      date: "2026-10-07",
+      url: "https://conservativebc.ca/plan/insurance/",
+      usedFor: "The Conservatives' auto insurance plan.",
+    },
+    conHealth: {
+      short: "Conservatives, Keep ERs Open",
+      title: "Keep Emergency Rooms Open",
+      publisher: "Conservative Party of BC",
+      date: "2026-10-05",
+      url: "https://conservativebc.ca/plan/keep-emergency-rooms-open/",
+      usedFor: "The Conservatives' health care commitments.",
+    },
+    conSafety: {
+      short: "Conservatives, Safe Streets",
+      title: "Safe Streets for BC",
+      publisher: "Conservative Party of BC",
+      date: "2026-10-06",
+      url: "https://conservativebc.ca/plan/safe-streets-for-bc/",
+      usedFor: "Policing, addiction treatment and safe supply.",
+    },
+    conEnergy: {
+      short: "Conservatives, Energy Superpower Plan",
+      title: "BC Energy Superpower Plan",
+      publisher: "Conservative Party of BC",
+      date: "2026-10-05",
+      url: "https://conservativebc.ca/plan/make-british-columbia-an-energy-superpower/",
+      usedFor: "Natural gas production targets.",
+    },
+    conWildfire: {
+      short: "Conservatives, Wildfire Action Plan",
+      title: "Wildfire Action Plan",
+      publisher: "Conservative Party of BC",
+      date: "2026-10-05",
+      url: "https://conservativebc.ca/plan/fighting-wildfires-protecting-communities/",
+      usedFor: "The Conservatives' wildfire commitments.",
+    },
+    conSchools: {
+      short: "Conservatives, Safe Schools",
+      title: "Safe Schools",
+      publisher: "Conservative Party of BC",
+      date: "2026-10-07",
+      url: "https://conservativebc.ca/plan/safe-schools/",
+      usedFor: "Repealing SOGI 123.",
+    },
+    conDripa: {
+      short: "Conservatives, Repeal DRIPA",
+      title: "Repeal DRIPA, Promote Economic Reconciliation",
+      publisher: "Conservative Party of BC",
+      date: "2026-10-07",
+      url: "https://conservativebc.ca/plan/first-nations-dripa/",
+      usedFor: "Repealing DRIPA.",
+    },
+    greenPlan: {
+      short: "BC Greens, Our Plan",
+      title: "Our Plan for British Columbia",
+      publisher: "BC Green Party",
+      url: "https://bcgreens.ca/our-plan/",
+      usedFor: "The Greens' summary of their four priorities.",
+    },
+    greenPlatform: {
+      short: "BC Greens platform",
+      title: "BC Greens 2026 Platform (PDF)",
+      publisher: "BC Green Party",
+      url: "https://bcgreens.ca/wp-content/uploads/2026/10/BCG_Platform.pdf",
+      usedFor: "The Greens' full costed platform.",
+    },
+    ctrPlatform: {
+      short: "CentreBC platform",
+      title: "A Balanced Plan for British Columbia: The 2026 Platform (PDF)",
+      publisher: "CentreBC",
+      url: "https://www.centrebc.ca/wp-content/uploads/2026/10/CentreBC-2026-Platform-Web.pdf",
+      usedFor: "CentreBC's full costed platform.",
+    },
+    onebcPriorities: {
+      short: "OneBC priorities",
+      title: "Our Priorities",
+      publisher: "OneBC",
+      url: "https://1bc.ca/priorities",
+      usedFor: "OneBC's platform priorities.",
+    },
+    libPlatform: {
+      short: "Libertarian platform",
+      title: "2026 Platform",
+      publisher: "BC Libertarian Party",
+      url: "https://libertarian.bc.ca/2026-platform/",
+      usedFor: "The Libertarians' platform summaries.",
+    },
+
+    // News
+    vicCall: {
+      title: "Snap provincial election called in B.C. for Oct. 24",
+      publisher: "Victoria News",
+      date: "2026-09-22",
+      url: "https://vicnews.com/2026/09/22/premier-david-eby-expected-to-call-provincial-snap-election-today/",
+      usedFor: "Why the election was called early, and the criticism of the timing.",
+    },
+    mrnFiveWay: {
+      title: "Party leaders set for a five-way race to B.C. election day",
+      publisher: "Maple Ridge News",
+      date: "2026-09-23",
+      url: "https://mapleridgenews.com/2026/09/23/parties-leaders-set-for-a-five-way-race-to-b-c-election-day/",
+      usedFor: "The parties and leaders, and Eby's pledge to amend DRIPA.",
+    },
+    mrnLineups: {
+      title: "Four candidates running in both Maple Ridge ridings in Oct. 24 provincial election",
+      publisher: "Maple Ridge News",
+      date: "2026-10-05",
+      url: "https://mapleridgenews.com/2026/10/05/four-candidates-running-in-both-maple-ridge-ridings-in-oct-24-provincial-election/",
+      usedFor: "Confirming the candidates in Maple Ridge's two ridings.",
+    },
+    mrnCampbell: {
+      title: "School board trustee running for NDP in Maple Ridge East",
+      publisher: "Maple Ridge News",
+      date: "2026-09-29",
+      url: "https://mapleridgenews.com/2026/09/29/school-board-trustee-running-for-ndp-in-maple-ridge-east/",
+      usedFor: "Hudson Campbell's background and positions.",
+    },
+    mrnMokTariffs: {
+      title: "Maple Ridge Conservative candidate stands up to swipes by NDP",
+      publisher: "Maple Ridge News",
+      date: "2026-09-27",
+      url: "https://mapleridgenews.com/2026/09/27/maple-ridge-conservative-candidate-stands-up-to-swipes-by-ndp/",
+      usedFor: "Lawrence Mok's position on the U.S. liquor ban and tariffs.",
+    },
+    mrnMokMaternity: {
+      title: "Maple Ridge East MLA blasts NDP government over maternity diversions",
+      publisher: "Maple Ridge News",
+      date: "2025-12-12",
+      url: "https://mapleridgenews.com/2025/12/12/maple-ridge-east-mla-blasts-ndp-government-over-maternity-diversions/",
+      usedFor: "Lawrence Mok's statement on Ridge Meadows Hospital maternity care.",
+    },
+    mrnMokDeficit: {
+      title: "Maple Ridge East MLA Mok critical of record provincial deficit",
+      publisher: "Maple Ridge News",
+      date: "2025-03-08",
+      url: "https://mapleridgenews.com/2025/03/08/maple-ridge-east-mla-mok-critical-of-record-provincial-deficit/",
+      usedFor: "Lawrence Mok's statement on the 2025 budget deficit.",
+    },
+    mrnKite: {
+      title: "Kite running as Green Party candidate in Maple Ridge East",
+      publisher: "Maple Ridge News",
+      date: "2026-10-06",
+      url: "https://mapleridgenews.com/2026/10/06/kite-running-as-green-party-candidate-in-maple-ridge-east/",
+      usedFor: "Daniel Kite's background and positions.",
+    },
+    mrnSimmons: {
+      title: "Tech CEO running in Maple Ridge-Pitt Meadows for CentreBC",
+      publisher: "Maple Ridge News",
+      date: "2026-10-11",
+      url: "https://mapleridgenews.com/2026/10/11/tech-ceo-running-in-maple-ridge-pitt-meadows-for-centrebc/",
+      usedFor: "Jordan Simmons's background and positions.",
+    },
+    mrnBeare: {
+      title: "Maple Ridge-Pitt Meadows candidate Lisa Beare sets new mark for NDP",
+      publisher: "Maple Ridge News",
+      date: "2026-10-12",
+      url: "https://mapleridgenews.com/2026/10/12/maple-ridge-pitt-meadows-candidate-lisa-beare-sets-new-mark-for-ndp/",
+      usedFor: "Lisa Beare's background and positions.",
+    },
+    latLangley: {
+      title: "Candidates named in all Langley ridings",
+      publisher: "Langley Advance Times",
+      date: "2026-10-05",
+      url: "https://langleyadvancetimes.com/2026/10/05/candidates-named-in-all-langley-ridings/",
+      usedFor: "The area Langley-Walnut Grove covers, and background on CentreBC and OneBC.",
+    },
+    latIsaac: {
+      title: "NDP name candidate in Langley-Walnut Grove",
+      publisher: "Langley Advance Times",
+      date: "2026-10-04",
+      url: "https://langleyadvancetimes.com/2026/10/04/ndp-name-candidate-in-langley-walnut-grove/",
+      usedFor: "Holly Isaac's background and statement.",
+    },
+    mcrAM: {
+      title: "Kropp, Alexis, Jhaj and Monds named Abbotsford-Mission candidates",
+      publisher: "Mission City Record",
+      date: "2026-09-28",
+      url: "https://missioncityrecord.com/2026/09/28/gasper-alexis-jhaj-and-monds-to-seek-abbotsford-mission-seat/",
+      usedFor: "The Abbotsford-Mission candidates, the cancelled by-election and Pam Alexis's statement.",
+    },
+    mcrDebates: {
+      title: "Two debates scheduled for Abbotsford-Mission candidates",
+      publisher: "Mission City Record",
+      date: "2026-10-14",
+      url: "https://missioncityrecord.com/2026/10/14/two-debates-scheduled-for-abbotsford-mission-candidates/",
+      usedFor: "Abbotsford-Mission all-candidates debates.",
+    },
+    candidate: {
+      title: "Statements sent to this guide by candidates",
+      publisher: "The candidate, through this guide's feedback form",
+      usedFor: "Positions candidates sent us directly. Each one is quoted word for word and noted in the change log.",
     },
   },
 
   // Issues used for both party platforms and local candidates.
   issues: [
-    { id: "afford", label: "Cost of living", short: "Costs", question: "Help with everyday costs such as groceries, gas, hydro, insurance and child care." },
+    { id: "afford", label: "Cost of living", short: "Costs", question: "Help with everyday costs such as gas, groceries, hydro, insurance and child care." },
     { id: "housing", label: "Housing", short: "Housing", question: "Building homes, rents and home prices." },
     { id: "health", label: "Health care", short: "Health", question: "Family doctors, emergency rooms, surgery waits and hospitals, including Ridge Meadows Hospital." },
-    { id: "safety", label: "Public safety, addictions & mental health", short: "Safety", question: "Crime, drug policy, involuntary care and homelessness." },
-    { id: "economy", label: "Economy, jobs & resources", short: "Economy", question: "Jobs, resource projects, U.S. tariffs and business costs." },
+    { id: "safety", label: "Public safety, addictions & mental health", short: "Safety", question: "Crime, policing, drug policy, involuntary care and homelessness." },
+    { id: "economy", label: "Economy, jobs & U.S. tariffs", short: "Economy", question: "Jobs, small business, resource projects and the trade war with the U.S." },
     { id: "taxes", label: "Taxes, deficit & spending", short: "Taxes", question: "Tax changes, the provincial deficit and debt." },
-    { id: "education", label: "Schools & education", short: "Schools", question: "New schools, class sizes and space in SD42." },
-    { id: "transport", label: "Roads & transit", short: "Transport", question: "Lougheed Highway, the Haney Bypass, buses, SkyTrain and the West Coast Express." },
-    { id: "climate", label: "Climate & energy", short: "Climate", question: "Emissions targets, carbon pricing, BC Hydro and energy projects." },
-    { id: "reconciliation", label: "Reconciliation & land rights", short: "Reconciliation", question: "DRIPA, Aboriginal title and agreements with First Nations." },
+    { id: "education", label: "Schools & education", short: "Schools", question: "School space, classroom support and what's taught." },
+    { id: "transport", label: "Roads & transit", short: "Transport", question: "Highways, buses, SkyTrain and how transit is paid for." },
+    { id: "climate", label: "Climate, energy & wildfires", short: "Climate", question: "Emissions targets, carbon pricing, oil and gas, BC Hydro and wildfire protection." },
+    { id: "reconciliation", label: "Reconciliation & DRIPA", short: "DRIPA", question: "The Declaration on the Rights of Indigenous Peoples Act (DRIPA), treaties and agreements with First Nations." },
   ],
 
-  // Yes-or-no questions where parties have taken clear positions. Optional.
-  questions: [],
+  // Yes-or-no questions where parties have taken clear positions.
+  questions: [
+    { id: "dripa", label: "Repeal DRIPA, B.C.'s Declaration on the Rights of Indigenous Peoples Act" },
+    { id: "safesupply", label: "End \"safe supply\" (prescribed alternatives to street drugs)" },
+    { id: "involuntary", label: "Expand involuntary treatment for severe addiction" },
+    { id: "privatepay", label: "Allow private-pay health care alongside the public system" },
+    { id: "sogi", label: "Remove SOGI 123 from schools" },
+    { id: "lng", label: "Expand LNG and oil and gas production" },
+  ],
 
-  // Parties with candidates in the ridings this guide covers, in ballot-name order.
+  // Parties with candidates in the ridings this guide covers, alphabetical by ballot name.
   parties: [
-    { id: "ndp", name: "BC NDP", leader: null, website: null, platform: null, positions: {}, answers: {} },
-    { id: "con", name: "Conservative Party of B.C.", leader: null, website: null, platform: null, positions: {}, answers: {} },
-    { id: "green", name: "BC Greens", leader: null, website: null, platform: null, positions: {}, answers: {} },
-    { id: "onebc", name: "OneBC", leader: null, website: null, platform: null, positions: {}, answers: {} },
-    { id: "centrebc", name: "CentreBC", leader: null, website: null, platform: null, positions: {}, answers: {} },
+    {
+      id: "green", name: "BC Green Party", fullName: "Green Party Political Association of British Columbia",
+      leader: "Emily Lowan", leaderNote: "Running in Saanich North and the Islands",
+      candidatesBC: 73,
+      website: "https://bcgreens.ca/",
+      platform: { title: "2026 Platform (PDF)", url: "https://bcgreens.ca/wp-content/uploads/2026/10/BCG_Platform.pdf" },
+      positions: {
+        afford: { points: ["Restart the stalled $10-a-day child care pledge as a path to universal coverage, with fair pay for early childhood educators.", "Raise social and disability assistance above the poverty line and index it to inflation.", "Make transit free in phases, starting with people under 25 and seniors 65 and over."], source: ["greenPlan", "greenPlatform"] },
+        housing: { points: ["Build and protect 26,000 permanently affordable, non-market homes a year.", "Vacancy control, tying rent increases to the unit so rent can't jump when a tenant moves out.", "Protect 2,000 deeply affordable rentals a year and expand rent help for low-income renters and seniors."], source: ["greenPlan", "greenPlatform"] },
+        health: { points: ["A Community Health Centre in every riding, and safe nurse-to-patient ratios.", "Six visits a year to a mental health professional, such as a psychologist, covered by MSP.", "One central entry point for surgery referrals, and recommended vaccines at no cost."], source: "greenPlatform" },
+        safety: { points: ["Decriminalize possession of drugs for personal use, and provide regulated, pharmaceutical alternatives to the illicit supply.", "More supervised consumption and overdose prevention sites, linked to detox, recovery and housing.", "Add mental health as a fourth option when you call 911, and expand civilian crisis response teams."], source: "greenPlatform" },
+        economy: { points: ["Commercial rent protections for small businesses and a single \"front door\" for business approvals.", "Stronger public returns from natural resources, with community and Indigenous ownership.", "Boost minimum wage increases toward a living wage and give every worker the chance to join a union with sectoral bargaining."], source: ["greenPlan", "greenPlatform"] },
+        taxes: { points: ["A one-time \"Fair Share\" tax on net wealth over $50 million, estimated at $22.2 billion, then an annual tax on extreme wealth estimated at $5.4 billion a year.", "Collect 50% of oil and gas net profits through royalties. The party says no one who works for an income would pay more tax.", "The platform adds about $9.28 billion a year in spending, which the party says the new revenue covers."], source: "greenPlatform" },
+        education: { points: ["Close the inclusive-education funding gap with a new needs-based school funding formula.", "Phase out public funding for private schools, moving it to public schools.", "A universal school food program and a school supplies program."], source: "greenPlatform" },
+        transport: { points: ["Double the number of buses in the first term, and make transit free in phases.", "A province-wide intercity bus network with at least hourly service for 80% of B.C.", "An all-party committee to agree on long-term funding for TransLink and BC Transit."], source: "greenPlatform" },
+        climate: { points: ["Stop approving new fracking expansion, LNG terminals and fossil-fuel pipelines, and plan a managed decline of oil and gas.", "Electricity to supply at least 35% of B.C.'s energy by 2035, no new large dams, and one-for-one net metering for rooftop solar.", "A wildfire insurance pilot for homeowners who can't get affordable coverage, and stable FireSmart funding."], source: "greenPlatform" },
+        reconciliation: { points: ["Implement the Declaration on the Rights of Indigenous Peoples Act through legislation.", "Support modern treaties and stable revenue for Indigenous governments.", "Pass an Indigenous Languages Act."], source: "greenPlatform" },
+      },
+      answers: {
+        dripa: { stance: "opposes", text: "Would implement DRIPA through legislation.", source: "greenPlatform" },
+        safesupply: { stance: "opposes", text: "Would provide regulated, pharmaceutical alternatives to the illicit drug supply.", source: "greenPlatform" },
+        involuntary: { stance: "mixed", text: "Backs \"real investment in voluntary care\" and would strengthen protections around consent, capacity and involuntary treatment.", source: ["greenPlan", "greenPlatform"] },
+        lng: { stance: "opposes", text: "Would end approvals for new fracking expansion, LNG terminals and expansions, and new fossil-fuel pipelines.", source: "greenPlatform" },
+      },
+    },
+    {
+      id: "ndp", name: "BC NDP", fullName: "BC NDP",
+      leader: "David Eby", leaderNote: "Premier. Running in Vancouver-Point Grey",
+      candidatesBC: 92,
+      website: "https://www.bcndp.ca/",
+      platform: { title: "Build BC Strong", url: "https://www.bcndp.ca/plan" },
+      positions: {
+        afford: { points: ["Suspend 10 cents a litre of provincial fuel tax and let the BC Utilities Commission cap excess profit margins; the party says drivers would save up to 30 cents a litre.", "A \"price guard\" capping big grocers' profits on basics such as milk, eggs, cheese, butter and poultry, and a ban on AI-powered \"surveillance pricing\".", "Keep ICBC basic insurance rates frozen through spring 2030."], source: "ndpPlan" },
+        housing: { points: ["Raise the speculation and vacancy tax from 1% to 2% for B.C. owners of secondary properties, and from 4% to 5% for foreign owners.", "A new tax on developer-owned condos left vacant and unsold for more than a year, which the party says would unlock up to 5,000 homes."], source: "ndpPlan" },
+        health: { points: ["20 more team-based primary care clinics, and more same-day, evening and weekend appointments.", "1,000 more training seats for nurses, nurse practitioners, allied health workers and care aides.", "Region-wide surgical waitlists, more MRI and CT scanning, and a BC Health Passport app to track referrals.", "500 more home care workers, no home care user fees, and free shingles vaccines for adults 50 and over."], source: "ndpPlan" },
+        safety: { points: ["Make permanent, and double funding for, the programs that target repeat violent and chronic property offenders.", "Hire 50 more Crown prosecutors, with a unit focused on extortion, racketeering and gang violence.", "A retail theft task force, and more seizures of gang assets like luxury vehicles and properties."], source: "ndpPlan" },
+        economy: { points: ["A $500-million fund offering interest-free loans of up to $1 million to small businesses hit by wildfires or U.S. tariffs.", "A $5,000 refundable tax credit for small businesses that hire someone aged 18 to 30 for their first full-time, 12-month job.", "\"Built in B.C. and Canada\" buying rules for public projects, a $120-million forestry jobs fund, and doubling critical mineral exports within five years."], source: "ndpPlan" },
+        taxes: { points: ["Raise income tax rates by 2 percentage points on the top two brackets, for income above $190,405, and add a 24.5% bracket for income over $1 million. The party says over 96% of residents would pay no more.", "Its costing projects deficits of $13.8 billion in 2026/27, $12.7 billion in 2027/28 and $12.0 billion in 2028/29."], source: ["ndpPlan", "ndpCosting"] },
+        education: { points: ["Double provincial funding for public libraries, from $14 million to $28 million a year."], source: "ndpPlan" },
+        transport: { points: ["$40 million more a year for BC Transit.", "Rapid bus transit in Metro Vancouver with TransLink and Ottawa, with $250 million in its capital plan.", "A long-term TransLink funding model \"without raising costs for drivers\"."], source: ["ndpPlan", "ndpCosting"] },
+        climate: { points: ["$50 million a year in heat pump rebates, and triple public EV charging ports over the next decade.", "Virtually eliminate methane emissions by 2035, and protect 30% of B.C.'s land by 2030 with Ottawa.", "A $50-million fund to permanently protect old growth, and limits on power and water use by AI data centres."], source: "ndpPlan" },
+        reconciliation: { points: ["Partner with First Nations to speed up major clean energy and resource projects, so communities share in the benefits.", "Leader David Eby has pledged to amend the Declaration on the Rights of Indigenous Peoples Act."], source: ["ndpPlan", "mrnFiveWay"] },
+      },
+      answers: {
+        dripa: { stance: "mixed", text: "Eby has pledged to amend DRIPA. The platform we reviewed doesn't call for repeal.", source: ["mrnFiveWay", "ndpPlan"] },
+        privatepay: { stance: "opposes", text: "Every NDP candidate has signed a Public Health Care Guarantee pledge opposing out-of-pocket charges for medically necessary care.", source: "ndpPlan" },
+      },
+    },
+    {
+      id: "centrebc", name: "CentreBC", fullName: "Centre BC",
+      leader: "Elenore Sturko", leaderNote: "Running in Surrey South",
+      summary: "Founded in 2025 by former BC United members.",
+      summarySource: "latLangley",
+      candidatesBC: 35,
+      website: "https://www.centrebc.ca/",
+      platform: { title: "2026 Platform (PDF)", url: "https://www.centrebc.ca/wp-content/uploads/2026/10/CentreBC-2026-Platform-Web.pdf" },
+      positions: {
+        afford: { points: ["Lower the first income tax bracket from 5.6% back to 5.06% on January 1, 2027; the party says a two-income family saves about $540 a year.", "Raise the renter's tax credit from $400 to $600 a year, with the full credit for households earning up to $80,000.", "Cap BC Hydro residential rate increases at inflation, and never more than 3% a year, from 2027 to 2030; 20,000 new $10-a-day child care spaces by 2030."], source: "ctrPlatform" },
+        housing: { points: ["Provincial deadlines of 6 months for rezonings and 8 weeks for building permits; if a deadline is missed, the builder gets their fees back.", "Double BC Builds to 20,000 homes that rent or sell below market by 2031.", "Halve development cost charges on new rental and below-market homes, and rebate the PST on materials for new rental buildings."], source: "ctrPlatform" },
+        health: { points: ["A family doctor or nurse practitioner team for everyone who wants one by the end of 2031.", "Five more MRI machines in public hospitals and 15,000 more scheduled surgeries a year by 2030/31, with no private-pay options that pull doctors out of the public system.", "An ER Accountability Act, aiming to halve unplanned ER closure hours by 2029/30."], source: "ctrPlatform" },
+        safety: { points: ["Hire 100 more provincial RCMP officers a year for five years, and add 60 Crown prosecutors by 2030/31.", "150 more detox beds and 500 more treatment and recovery beds by 2030, free to the person using them.", "Ask Ottawa to charge drug possession in public and by repeat offenders, and build 1,000 supportive homes with on-site health care and clear conduct rules."], source: "ctrPlatform" },
+        economy: { points: ["Double B.C.'s exports outside the United States by 2033.", "Cut the Employer Health Tax in half for two years for sectors hit by U.S. tariffs, including forestry, steel, aluminum and manufacturing.", "Cut provincial regulatory requirements by 25% by 2030, and decide routine permits within 90 days or they're deemed approved."], source: "ctrPlatform" },
+        taxes: { points: ["Pass a Balanced Budget and Spending Control Act: the deficit falls every year after its first budget, to about $9.0 billion by 2030/31, and the budget balances by 2034/35.", "An Independent Budget Officer reporting to the legislature."], source: "ctrPlatform" },
+        education: { points: ["25,000 new school seats by 2031, starting in the fastest-growing districts and those with the most portables.", "1,500 more education assistants, and one counsellor for every 400 students, by 2030.", "Bring back letter grades, with written comments, from Grade 4 to Grade 9 starting in September 2028."], source: "ctrPlatform" },
+        transport: { points: ["A $15-billion three-year transportation plan, including the Surrey–Langley SkyTrain, the Fraser River Tunnel and widening Highway 1 to Chilliwack.", "About six new rapid bus lines, and a study of rapid transit South of the Fraser beyond the Surrey–Langley SkyTrain."], source: "ctrPlatform" },
+        climate: { points: ["Put an \"honest\" 2030 milestone of 20% below 2007 in law, saying B.C. will miss its current target, and create an independent Climate Accountability Office.", "Keep carbon pricing on large industrial emitters, with no consumer carbon tax.", "Bring FireSmart grants back to $40 million a year, guaranteed in law for five years."], source: "ctrPlatform" },
+        reconciliation: { points: ["Repeal DRIPA and section 8.1 of the Interpretation Act, and replace them with a law built on negotiated treaties, with $30 million a year for faster treaty talks.", "No family or business would lose privately owned land in an agreement with a First Nation without the owner's agreement.", "Expand the First Nations Equity Financing Program to $3 billion in loan guarantees."], source: "ctrPlatform" },
+      },
+      answers: {
+        dripa: { stance: "supports", text: "Would repeal DRIPA and replace it with a new law built on negotiated treaties.", source: "ctrPlatform" },
+        involuntary: { stance: "mixed", text: "\"Voluntary care always comes first,\" but supports involuntary care for people too ill to keep themselves safe, with each patient's ability assessed individually.", source: "ctrPlatform" },
+        privatepay: { stance: "opposes", text: "\"We will not allow private-pay options that pull doctors and resources out of the public system.\"", source: "ctrPlatform" },
+        lng: { stance: "mixed", text: "Would back LNG projects that have First Nations partners and a credible plan to be net-zero ready.", source: "ctrPlatform" },
+      },
+    },
+    {
+      id: "con", name: "Conservative Party", fullName: "Conservative Party of British Columbia",
+      leader: "Lorne Doerkson", leaderNote: "Interim leader since Kerry-Lynne Findlay resigned on September 20. Running in Cariboo-Chilcotin",
+      candidatesBC: 93,
+      website: "https://conservativebc.ca/",
+      platform: { title: "Our Plan", url: "https://conservativebc.ca/plan/" },
+      positions: {
+        afford: { points: ["Raise the basic personal exemption from $13,216 to $32,000, which the party says cuts provincial income tax by $1,000 a year for nearly every working British Columbian.", "Remove the PST on Canadian beer, wine and spirits for the duration of the U.S. trade war.", "A \"hybrid\" auto insurance system that gives seriously injured victims access to representation, and more consumer choice while keeping ICBC as an option."], source: ["conTax", "conPst", "conInsurance"] },
+        health: { points: ["Keep emergency rooms and maternity wards open, protect current health funding, and keep the system universal and publicly funded.", "A $50-million emergency fund, support for rural practices at risk of closing, and faster recognition of international credentials.", "An expert commission within the first 100 days to cut wait times."], source: ["conHealth", "conPlan"] },
+        safety: { points: ["Hire 250 more police officers through the JIBC Police Academy, and add 500 RCMP officers and 150 civilian staff over five years.", "\"Compassionate intervention\" to take people with severe addiction, mental illness or brain injury off the street and into care, and changes so police can connect people with mandatory treatment.", "End \"safe supply\", stop illegal drug use in hospitals, shelters and supportive housing, and hire 50 new Crown prosecutors."], source: "conSafety" },
+        economy: { points: ["Double B.C.'s natural gas production by 2032 and triple it by 2035, with faster project approvals and First Nations partnership and ownership at the centre of new development."], source: "conEnergy" },
+        taxes: { points: ["Never raise taxes \"for the entirety of our government\".", "The $1,000 income tax cut (see Cost of living)."], source: ["conNoNewTaxes", "conTax"] },
+        education: { points: ["Repeal SOGI, \"while providing a safe place for our kids to go to school.\""], source: ["conSchools", "conPlan"] },
+        climate: { points: ["A wildfire action plan: buy new firefighting aircraft, including waterbombers, reduce dangerous forest fuels around communities and make prescribed fire easier to use."], source: "conWildfire" },
+        reconciliation: { points: ["Repeal DRIPA: \"DRIPA has not created the security for British Columbians that it was meant to achieve.\"", "Build projects together with First Nations, which the party calls economic reconciliation."], source: ["conDripa", "conPlan"] },
+      },
+      answers: {
+        dripa: { stance: "supports", text: "\"We need a genuine path forward, and DRIPA must be repealed.\"", source: "conPlan" },
+        safesupply: { stance: "supports", text: "\"End the NDP's failed 'safe supply' experiment and expand access to naloxone.\"", source: "conSafety" },
+        involuntary: { stance: "supports", text: "Would introduce \"compassionate intervention\" and amend the Mental Health Act so officers can connect people with mandatory treatment.", source: "conSafety" },
+        privatepay: { stance: "opposes", text: "Would keep B.C.'s system \"universal and publicly funded\", so people never need more than their health card to get care.", source: "conHealth" },
+        sogi: { stance: "supports", text: "\"We have to repeal SOGI, while providing a safe place for our kids to go to school.\"", source: "conPlan" },
+        lng: { stance: "supports", text: "Would double natural gas production by 2032 and triple it by 2035.", source: "conEnergy" },
+      },
+    },
+    {
+      id: "lib", name: "Libertarian", fullName: "British Columbia Libertarian Party",
+      leader: "Alex Joehl", leaderNote: "Running in Langley-Abbotsford",
+      candidatesBC: 4,
+      website: "https://libertarian.bc.ca/",
+      platform: { title: "2026 Platform", url: "https://libertarian.bc.ca/2026-platform/" },
+      positions: {
+        afford: { points: ["End ICBC's monopoly, so drivers can choose a competing insurer for basic auto insurance.", "End the 7% PST on private vehicle sales.", "Modernize liquor laws; the party says the Liquor Distribution Branch raises the price of beer, wine and spirits by up to 170%."], source: "libPlatform" },
+        housing: { points: ["Simplify the regulations that drive up the cost of building, and open up some land in the Agricultural Land Reserve for housing."], source: "libPlatform" },
+        health: { points: ["Keep private surgery clinics and other options legal, so patients can get timely care."], source: "libPlatform" },
+        safety: { points: ["Bring drug use \"out of the shadows so users can more easily obtain support in rehabilitation.\"", "Reform civil asset forfeiture."], source: "libPlatform" },
+        economy: { points: ["Eliminate the Employer Health Tax.", "Disperse Crown land, which it says makes up 94% of B.C., \"as efficiently as possible\"."], source: "libPlatform" },
+        taxes: { points: ["Cut government spending significantly, return the savings to taxpayers and pay down the provincial debt.", "Convert the PST to a value-added tax."], source: "libPlatform" },
+        education: { points: ["Move decision-making from the Ministry of Education to school districts, and consult on funding that follows the student."], source: "libPlatform" },
+        transport: { points: ["Repeal the Passenger Transportation Act and dissolve the board that sets prices for taxis, shuttles, limousines and intercity buses."], source: "libPlatform" },
+        climate: { points: ["Opposes the CleanBC program, which it says will drive up energy costs."], source: "libPlatform" },
+      },
+      answers: {
+        privatepay: { stance: "supports", text: "Says private options \"must remain legal so that British Columbians can access timely care.\"", source: "libPlatform" },
+      },
+    },
+    {
+      id: "onebc", name: "OneBC", fullName: "OneBC",
+      leader: "Dallas Brodie", leaderNote: "Interim leader. Running in Vancouver-Quilchena",
+      summary: "Formed by former B.C. Conservative MLAs who were removed from or left the party caucus under former leader John Rustad.",
+      summarySource: "latLangley",
+      candidatesBC: 33,
+      website: "https://1bc.ca/",
+      platform: { title: "Our Priorities", url: "https://1bc.ca/priorities" },
+      positions: {
+        afford: { points: ["25% tax cuts for every tax bracket, including corporate, and 2 points off the PST.", "Phase out ICBC's insurance monopoly and end no-fault insurance."], source: "onebcPriorities" },
+        housing: { points: ["Eliminate the Step Code, which it says raises housing costs with \"unnecessary green building requirements\".", "Block municipal rent control programs."], source: "onebcPriorities" },
+        health: { points: ["Private health care alongside fully funded public health care.", "Shift administration and HR spending to front-line staff and resources."], source: "onebcPriorities" },
+        safety: { points: ["Eliminate safe supply and drug consumption programs, and turn current consumption sites into recovery centres.", "Involuntary drug rehab and housing for the severely addicted, and roll back all decriminalization programs.", "Crack down on repeat and violent offenders, and ban mask wearing during protests."], source: "onebcPriorities" },
+        economy: { points: ["Approve a pipeline to the Port of Prince Rupert or Kitimat.", "Audit B.C.'s more than 176,000 regulations to reduce \"bureaucratic bloat\".", "Increase the allowable timber cut and reduce stumpage fees."], source: "onebcPriorities" },
+        taxes: { points: ["Balanced budgets within four years, aiming for surpluses, with part of each surplus going to debt repayment.", "The 25% tax cuts (see Cost of living)."], source: "onebcPriorities" },
+        education: { points: ["Bring back standardized testing focused on reading, writing and math.", "Remove SOGI 123 and \"politicized content\" from classrooms, and a Parental Bill of Rights."], source: "onebcPriorities" },
+        reconciliation: { points: ["Repeal DRIPA and declare UNDRIP to have no force and effect in B.C.", "Halt voluntary transfers of cash, land and control over public resources to band governments, and restore oversight of band spending.", "End mandatory land acknowledgements in government and government-funded institutions."], source: "onebcPriorities" },
+      },
+      answers: {
+        dripa: { stance: "supports", text: "\"Repeal DRIPA and declare UNDRIP to have no force and effect in BC.\"", source: "onebcPriorities" },
+        safesupply: { stance: "supports", text: "\"Eliminate safe supply and drug consumption programs.\"", source: "onebcPriorities" },
+        involuntary: { stance: "supports", text: "\"Involuntary drug rehab and housing for the severely addicted.\"", source: "onebcPriorities" },
+        privatepay: { stance: "supports", text: "\"Private Healthcare alongside fully-funded public healthcare.\"", source: "onebcPriorities" },
+        sogi: { stance: "supports", text: "\"Remove SOGI-123 and politicized content from classrooms.\"", source: "onebcPriorities" },
+        lng: { stance: "supports", text: "Would approve a pipeline to Prince Rupert or Kitimat to get Canadian energy to foreign markets.", source: "onebcPriorities" },
+      },
+    },
   ],
 
-  // Maple Ridge's two ridings first (home: true), then the ridings next door.
+  // Maple Ridge's two ridings first (home: true), then the ridings a road
+  // crosses into from Maple Ridge or Pitt Meadows. Names exactly as DataBC.
   ridings: [
-    { id: "mrpm", name: "Maple Ridge-Pitt Meadows", home: true, area: null, incumbent: "beare", result2024: null },
-    { id: "mre", name: "Maple Ridge East", home: true, area: null, incumbent: "mok", result2024: null },
+    {
+      id: "mrpm", name: "Maple Ridge-Pitt Meadows", home: true,
+      area: "Pitt Meadows, western Maple Ridge (including the area around Ridge Meadows College and Silver Valley) and the large, mostly undeveloped area to the north.",
+      incumbent: "beare",
+      result2024: { rows: [
+        { name: "Lisa Beare", party: "BC NDP", votes: 14480, pct: 54.89 },
+        { name: "Mike Morden", party: "Conservative Party", votes: 11901, pct: 45.11 },
+      ], source: "ebcResults2024" },
+      advance: [
+        ["Maple Ridge Secondary School", "21911 122 Ave., Maple Ridge", "Oct 16–21"],
+        ["Ridge Meadows College", "20575 Thorne Ave., Maple Ridge", "Oct 16–21"],
+      ],
+      office: { address: "500-20395 Lougheed Hwy., Maple Ridge", phone: "778-572-4400", email: "deo.map@elections.bc.ca" },
+    },
+    {
+      id: "mre", name: "Maple Ridge East", home: true,
+      area: "Central and eastern Maple Ridge, including downtown, Yennadon, Albion, Whonnock and Ruskin, plus part of Mission around Silverdale.",
+      incumbent: "mok",
+      result2024: { rows: [
+        { name: "Bob D'Eith", party: "BC NDP", votes: 11961, pct: 46.64 },
+        { name: "Lawrence Mok", party: "Conservative Party", votes: 12058, pct: 47.02 },
+        { name: "Kylee Williams", party: "BC Green Party", votes: 1626, pct: 6.34 },
+      ], source: "ebcResults2024" },
+      advance: [
+        ["Fraserview Village Hall", "22610 116 Ave., Maple Ridge", "Oct 18–20"],
+        ["Maple Ridge Lawn Bowling Club", "11445 232 St., Maple Ridge", "Oct 16–21"],
+      ],
+      office: { address: "22866 Dewdney Trunk Rd., Maple Ridge", phone: "778-572-4293", email: "deo.mae@elections.bc.ca" },
+    },
+    {
+      id: "am", name: "Abbotsford-Mission", home: false,
+      area: "Mission and part of northeast Abbotsford around Clayburn, east of Maple Ridge along the Lougheed Highway.",
+      incumbent: null,
+      note: "No incumbent is running. Conservative MLA Reann Gasper resigned in August 2026 so then-leader Kerry-Lynne Findlay could run in a by-election, which was cancelled when the general election was called.",
+      noteSource: ["mcrAM", "vicCall"],
+      result2024: { rows: [
+        { name: "Pam Alexis", party: "BC NDP", votes: 10894, pct: 44.62 },
+        { name: "Reann Gasper", party: "Conservative Party", votes: 13523, pct: 55.38 },
+      ], source: "ebcResults2024" },
+      advance: [
+        ["Best Western Mission City Banquet Hall", "32281 Lougheed Hwy., Mission", "Oct 16–21"],
+        ["Clayburn Middle School", "35139 Laburnum Ave., Abbotsford", "Oct 16–21"],
+        ["College Heights Mall", "C140-7871 Stave Lake St., Mission", "Oct 16–21"],
+      ],
+      office: { address: "E100-7871 Stave Lake St., Mission", phone: "778-752-5911", email: "deo.abm@elections.bc.ca" },
+    },
+    {
+      id: "lwg", name: "Langley-Walnut Grove", home: false,
+      area: "Walnut Grove, Fort Langley and northern Willoughby, across the Golden Ears Bridge.",
+      areaSource: "latLangley",
+      incumbent: "vanpopta",
+      result2024: { rows: [
+        { name: "Megan Dykeman", party: "BC NDP", votes: 10949, pct: 44.77 },
+        { name: "Rylee Mac Lean", party: "BC Green Party", votes: 1254, pct: 5.13 },
+        { name: "Carlos Suarez Rubio", party: "Independent", votes: 134, pct: 0.55 },
+        { name: "Misty Van Popta", party: "Conservative Party", votes: 12121, pct: 49.56 },
+      ], source: "ebcResults2024" },
+      advance: [
+        ["Fort Langley Lions Seniors Hall", "23022 88 Ave., Langley", "Oct 19–21"],
+        ["Yorkson Creek Middle School", "20686 84 Ave., Langley", "Oct 16–21"],
+      ],
+      office: { address: "9110 196A St., Langley", phone: "778-572-4279", email: "deo.lwg@elections.bc.ca" },
+    },
+    {
+      id: "poco", name: "Port Coquitlam", home: false,
+      area: "Port Coquitlam, across the Pitt River from Pitt Meadows.",
+      incumbent: "farnworth",
+      result2024: { rows: [
+        { name: "Keenan Adams", party: "Conservative Party", votes: 9967, pct: 38.79 },
+        { name: "Adam Bremner-Akins", party: "BC Green Party", votes: 1644, pct: 6.40 },
+        { name: "Lewis Dahlby", party: "Libertarian", votes: 244, pct: 0.95 },
+        { name: "Mike Farnworth", party: "BC NDP", votes: 13843, pct: 53.87 },
+      ], source: "ebcResults2024" },
+      advance: [
+        ["Pitt River Middle School", "2070 Tyner St., Port Coquitlam", "Oct 16–21"],
+        ["Terry Fox Secondary School", "1260 Riverwood Gate, Port Coquitlam", "Oct 16–21"],
+      ],
+      office: { address: "2056-1163 Pinetree Way, Coquitlam", phone: "778-572-4625", email: "deo.poc@elections.bc.ca" },
+    },
   ],
 
-  // Alphabetical by surname within each riding, as on the ballot.
+  // Alphabetical by surname within each riding, as on Elections BC's list.
   candidates: [
     // ───────────── MAPLE RIDGE-PITT MEADOWS ─────────────
-    { id: "beare", name: "Lisa Beare", riding: "mrpm", party: "ndp", incumbent: true, background: "", priorities: [], links: {}, positions: {} },
-    { id: "einarsson", name: "Susan Einarsson", riding: "mrpm", party: "onebc", incumbent: false, background: "", priorities: [], links: {}, positions: {} },
-    { id: "morneau", name: "Doug Morneau", riding: "mrpm", party: "con", incumbent: false, background: "", priorities: [], links: {}, positions: {} },
-    { id: "simmons", name: "Jordan Simmons", riding: "mrpm", party: "centrebc", incumbent: false, background: "", priorities: [], links: {}, positions: {} },
+    {
+      id: "beare", name: "Lisa Beare", riding: "mrpm", party: "ndp", incumbent: true,
+      background: "MLA since 2017. Minister of Education and Child Care when the election was called; earlier minister of tourism, arts and culture, of citizens' services, and of post-secondary education. First elected as an SD42 school trustee in 2014.",
+      backgroundSource: ["mrnBeare", "profile"],
+      priorities: ["Standing up to U.S. tariffs", "Jobs and the economy", "Schools", "Health care"],
+      profile: { url: "https://lisabeare.bcndp.ca", label: "BC NDP candidate page" },
+      links: { website: "https://lisabeare.bcndp.ca", email: "lisa.beare@bcndp.ca" },
+      positions: {
+        economy: { stance: "priority", text: "Says the provincial government needs to be focused on the economy, keeping and creating jobs, and \"standing strong against Trump.\"", source: "mrnBeare" },
+        health: { stance: "priority", text: "Says the NDP has connected more people to a family doctor, with 17 physicians in Maple Ridge now accepting patients.", source: "mrnBeare" },
+        education: { stance: "priority", text: "Points to $240 million in capital investment for a new Pitt Meadows secondary school, a new Eric Langton Elementary, and additions and renovations at other schools.", source: "mrnBeare" },
+      },
+    },
+    {
+      id: "einarsson", name: "Susan Einarsson", riding: "mrpm", party: "onebc", incumbent: false,
+      background: "Broadcaster and educator: more than a decade teaching at BCIT and 25 years as a news anchor and reporter, including at CKNW and CBC. Owns My Town Maple Ridge News Society. Has served on the local board of the federal Conservative Party.",
+      backgroundSource: "profile",
+      priorities: ["Listening to voters", "\"Common sense\" decision-making"],
+      profile: { url: "https://1bc.ca/candidates/seinarsson", label: "OneBC candidate page" },
+      links: { email: "susan.einarsson@1bc.ca" },
+      positions: {},
+    },
+    {
+      id: "morneau", name: "Doug Morneau", riding: "mrpm", party: "con", incumbent: false,
+      background: "Has lived in Maple Ridge for eight years. Four decades in business; now helps companies assess their technology spending. Former board member of BC Assessment. Serves on the board of the local federal Conservative riding association.",
+      backgroundSource: "profile",
+      priorities: ["Value for public money"],
+      profile: { url: "https://conservativebc.ca/candidate/doug-morneau/", label: "Conservative candidate page" },
+      links: {},
+      positions: {
+        taxes: { stance: "priority", text: "His party profile says he \"knows how public money gets spent, and how to ask whether it is being spent well.\"", source: "profile" },
+      },
+    },
+    {
+      id: "simmons", name: "Jordan Simmons", riding: "mrpm", party: "centrebc", incumbent: false,
+      background: "Co-founder and CEO of Nominee, a technology platform for governance and political leadership training. Former senior advisor to several B.C. cabinet ministers. Has lived in west Maple Ridge for seven years.",
+      backgroundSource: ["mrnSimmons", "profile"],
+      priorities: ["Transportation and schools that keep up with growth", "Health care access", "Public safety, homelessness and addiction"],
+      profile: { url: "https://www.centrebc.ca/candidates/jordan-simmons/", label: "CentreBC candidate page" },
+      links: {},
+      positions: {
+        economy: { stance: "priority", text: "Says Eby's government has not focused on the economy or attracting investment: \"the status quo just is not working.\"", source: "mrnSimmons" },
+        health: { stance: "priority", text: "Would promote reliable access to quality health care.", source: "mrnSimmons" },
+        safety: { stance: "priority", text: "Wants \"a compassionate and effective response to public safety, homelessness and addiction\" that keeps streets safe while supporting the most vulnerable.", source: "profile" },
+        education: { stance: "priority", text: "Believes Maple Ridge and Pitt Meadows deserve schools that keep up with growth.", source: "mrnSimmons" },
+        transport: { stance: "priority", text: "Believes Maple Ridge and Pitt Meadows deserve better transportation and infrastructure.", source: "mrnSimmons" },
+      },
+    },
 
     // ───────────── MAPLE RIDGE EAST ─────────────
-    { id: "campbell", name: "Hudson Campbell", riding: "mre", party: "ndp", incumbent: false, background: "", priorities: [], links: {}, positions: {} },
-    { id: "hatchwell", name: "Chris Hatchwell", riding: "mre", party: null, incumbent: false, background: "", priorities: [], links: {}, positions: {} },
-    { id: "kite", name: "Daniel Kite", riding: "mre", party: "green", incumbent: false, background: "", priorities: [], links: {}, positions: {} },
-    { id: "mok", name: "Lawrence Mok", riding: "mre", party: "con", incumbent: true, background: "", priorities: [], links: {}, positions: {} },
+    {
+      id: "campbell", name: "Hudson Campbell", riding: "mre", party: "ndp", incumbent: false,
+      background: "SD42 school trustee, aged 24. Worked as a constituency advisor to Lisa Beare for most of five years. Founding member of the City's UPlan youth committee and past president of the Maple Ridge Climate Hub.",
+      backgroundSource: ["mrnCampbell", "profile"],
+      priorities: ["More school seats", "A modern local hospital", "Traffic on Lougheed and Dewdney Trunk"],
+      profile: { url: "https://hudsoncampbell.bcndp.ca", label: "BC NDP candidate page" },
+      links: { website: "https://hudsoncampbell.bcndp.ca", email: "hudson.campbell@bcndp.ca" },
+      positions: {
+        health: { stance: "priority", text: "Says Maple Ridge and Mission have smaller hospitals that need upgrading: \"Our community deserves a modern health care facility, and I will definitely work for that.\"", source: "mrnCampbell" },
+        education: { stance: "priority", text: "\"We need more seats for our students – we're still a growing district.\"", source: "mrnCampbell" },
+        transport: { stance: "priority", text: "Says traffic for commuters on the Lougheed Highway and Dewdney Trunk Road needs to be addressed.", source: "mrnCampbell" },
+      },
+    },
+    {
+      id: "hatchwell", name: "Chris Hatchwell", riding: "mre", party: null, incumbent: false,
+      background: "",
+      priorities: [],
+      note: "We found no website or public statements from this candidate. Elections BC lists him as an Independent.",
+      links: {},
+      positions: {},
+    },
+    {
+      id: "kite", name: "Daniel Kite", riding: "mre", party: "green", incumbent: false,
+      background: "Teacher at Westview Secondary in SD42 and a staff representative with the Maple Ridge Teachers' Association. Taught internationally for seven years in China, Egypt and Russia. Has lived in Maple Ridge since 2023.",
+      backgroundSource: ["mrnKite", "profile"],
+      priorities: ["Affordability and child care", "Stronger care systems", "Support for workers", "An energy strategy that considers people and the environment"],
+      profile: { url: "https://bcgreens.ca/candidates-2026/daniel-kite/", label: "BC Greens candidate page" },
+      links: {},
+      positions: {
+        afford: { stance: "priority", text: "Says \"everyone is in a cost-of-living crunch\" and that the NDP is no longer prioritizing $10-a-day daycare, but the Greens would.", source: "mrnKite" },
+        safety: { stance: "priority", text: "On homelessness and the toxic drug crisis: \"We need to give people the supports they need, and not criminalize what is a health issue.\"", source: "mrnKite" },
+        climate: { stance: "priority", text: "Criticizes the NDP for developing oil and gas, which he says is bad for the climate and runs counter to a global shift to renewable energy.", source: "mrnKite" },
+      },
+    },
+    {
+      id: "mok", name: "Lawrence Mok", riding: "mre", party: "con", incumbent: true,
+      background: "MLA since 2024. Moved to Canada from Singapore in 1988 and has lived in Maple Ridge for over 30 years. More than 30 years in the overhead crane business; volunteers with the Maple Ridge Salvation Army Church and preaches part-time.",
+      backgroundSource: "profile",
+      priorities: ["Cracking down on violent crime", "Shorter medical wait times", "Lower taxes and a balanced budget"],
+      profile: { url: "https://conservativebc.ca/candidate/lawrence-mok/", label: "Conservative candidate page" },
+      links: { email: "lawrence.mok@conservativebc.ca" },
+      positions: {
+        health: { stance: "priority", text: "As MLA in December 2025, called maternity diversions from Ridge Meadows Hospital \"simply unacceptable\" and asked the Ministry of Health for a plan to restore full maternity coverage.", source: "mrnMokMaternity" },
+        economy: { stance: "priority", text: "Through his party, says he supports keeping U.S. liquor off store shelves until B.C. gets a fair deal, using the ban as leverage to win tariff relief for forestry workers.", source: "mrnMokTariffs" },
+        taxes: { stance: "priority", text: "As MLA in March 2025, criticized the NDP's record deficit and the growth in public-sector jobs since 2017.", source: "mrnMokDeficit" },
+        safety: { stance: "priority", text: "His party profile says he supports \"cracking down on violent crime\".", source: "profile" },
+      },
+    },
+
+    // ───────────── ABBOTSFORD-MISSION ─────────────
+    {
+      id: "alexis", name: "Pam Alexis", riding: "am", party: "ndp", incumbent: false,
+      background: "Mayor of Mission from 2018 and MLA for Abbotsford-Mission from 2020 to 2024, when she lost the seat. Served as Minister of Agriculture and Food.",
+      backgroundSource: ["profile", "mcrAM"],
+      priorities: ["Shorter commutes", "Health care", "Jobs"],
+      profile: { url: "https://pamalexis.bcndp.ca", label: "BC NDP candidate page" },
+      links: { website: "https://pamalexis.bcndp.ca", email: "pam.alexis@bcndp.ca" },
+      positions: {
+        transport: { stance: "priority", text: "Says the four-lane expansion of Highway 7 between Maple Ridge and Mission, completed in August, \"will help people spend less time commuting and more time at home.\"", source: "mcrAM" },
+      },
+    },
+    {
+      id: "dass", name: "Virender Dass", riding: "am", party: "onebc", incumbent: false,
+      background: "Came to Canada in 2014 after 18 years in visual effects. Founded the Abbotsford supplement company Wellness Extract and runs a children's mental-math learning centre with his wife.",
+      backgroundSource: "profile",
+      priorities: [],
+      profile: { url: "https://1bc.ca/candidates/vdass", label: "OneBC candidate page" },
+      links: {},
+      positions: {},
+    },
+    {
+      id: "jhaj", name: "Lakhwinder Jhaj", riding: "am", party: "centrebc", incumbent: false,
+      background: "Community advocate, businessperson and former reporter who grew up in Mission. Has run a construction company and used vehicle dealership. Ran for the BC NDP in 2009 and 2013 and for the federal Liberals in 2021.",
+      backgroundSource: "profile",
+      priorities: ["Families, farmers, seniors and small business", "Practical, respectful politics"],
+      profile: { url: "https://www.centrebc.ca/candidates/lakhwinder-jhaj/", label: "CentreBC candidate page" },
+      links: {},
+      positions: {},
+    },
+    {
+      id: "kropp", name: "Darryl Kropp", riding: "am", party: "con", incumbent: false,
+      background: "Abbotsford resident for more than 25 years. Technology executive at RedMane Technology; earlier built the lean management system at Cascade Aerospace. Former First West Credit Union board member.",
+      backgroundSource: ["profile", "mcrAM"],
+      priorities: ["Fiscal responsibility", "Governance"],
+      profile: { url: "https://conservativebc.ca/candidate/darryl-kropp/", label: "Conservative candidate page" },
+      links: {},
+      positions: {},
+    },
+    {
+      id: "monds", name: "Jeff Monds", riding: "am", party: "lib", incumbent: false,
+      background: "Ran in the cancelled September 2026 Abbotsford-Mission by-election.",
+      backgroundSource: "mcrAM",
+      priorities: ["Less taxes, less government, more freedom"],
+      links: {},
+      positions: {
+        taxes: { stance: "priority", text: "His party's by-election poster set out priorities for a \"freer, stronger British Columbia\", with less taxes, less government and more freedom.", source: "mcrAM" },
+      },
+    },
+
+    // ───────────── LANGLEY-WALNUT GROVE ─────────────
+    {
+      id: "isaac", name: "Holly Isaac", riding: "lwg", party: "ndp", incumbent: false,
+      background: "Canada Post letter carrier and first vice-president of her local Canadian Union of Postal Workers executive. Raised in Langley. Ran for the federal NDP in Langley-Fraser Heights in 2025.",
+      backgroundSource: ["latIsaac", "profile"],
+      priorities: ["Good jobs", "Public health care"],
+      profile: { url: "https://hollyisaac.bcndp.ca", label: "BC NDP candidate page" },
+      links: { website: "https://hollyisaac.bcndp.ca", email: "holly.isaac@bcndp.ca" },
+      positions: {
+        economy: { stance: "priority", text: "Says \"workers and families need a government that listens, protects good jobs and strengthens public healthcare, especially as Donald Trump's trade war creates more uncertainty for B.C.\"", source: "latIsaac" },
+        health: { stance: "priority", text: "Wants a government that \"strengthens public healthcare\".", source: "latIsaac" },
+      },
+    },
+    {
+      id: "meyer", name: "Sam Meyer", riding: "lwg", party: "green", incumbent: false,
+      background: "Grew up in Walnut Grove. Musician and music teacher who works for a Vancouver-based international broadcasting company. Studied philosophy and orchestral trumpet at UBC.",
+      backgroundSource: "profile",
+      priorities: ["Arts and culture", "Protecting waterways and green space", "Walkable communities with reliable transit"],
+      profile: { url: "https://bcgreens.ca/candidates-2026/sam-meyer/", label: "BC Greens candidate page" },
+      links: {},
+      positions: {
+        climate: { stance: "priority", text: "Wants to support the conservation of local waterways, green spaces and wildlife habitat.", source: "profile" },
+        transport: { stance: "priority", text: "Wants communities that are walkable, bike-friendly and connected by reliable public transportation.", source: "profile" },
+      },
+    },
+    {
+      id: "stevenson", name: "Kyle Stevenson", riding: "lwg", party: "centrebc", incumbent: false,
+      background: "Former journeyman electrician who worked on industrial projects and at Tesla Energy; now a commercial pilot. Lives in Walnut Grove with his wife, a nurse practitioner, and their two daughters.",
+      backgroundSource: "profile",
+      priorities: ["Housing", "Schools and health care that keep up with growth", "Safe neighbourhoods", "Lower BC Hydro rates"],
+      profile: { url: "https://www.centrebc.ca/candidates/kyle-stevenson/", label: "CentreBC candidate page" },
+      links: {},
+      positions: {
+        housing: { stance: "priority", text: "Says housing \"has moved out of reach for too many people who grew up here.\"", source: "profile" },
+        safety: { stance: "priority", text: "Wants police to have the tools they need to keep hard drugs and repeat offenders out of the community.", source: "profile" },
+        climate: { stance: "priority", text: "Would work toward lower BC Hydro base rates and greater energy independence.", source: "profile" },
+      },
+    },
+    {
+      id: "vanpopta", name: "Misty Van Popta", riding: "lwg", party: "con", incumbent: true,
+      background: "MLA since 2024. Langley native and former Township of Langley councillor, elected in 2022. Project management professional in construction.",
+      backgroundSource: "profile",
+      priorities: ["Overcrowded schools", "Health care investment", "Transit and transportation"],
+      profile: { url: "https://conservativebc.ca/candidate/misty-van-popta/", label: "Conservative candidate page" },
+      links: { email: "misty.vanpopta@conservativebc.ca" },
+      positions: {
+        education: { stance: "priority", text: "Her party profile names overcrowding in schools among the issues that led her to run in 2024.", source: "profile" },
+        health: { stance: "priority", text: "Her party profile names \"a lack of investment in health care\" among the issues that led her to run.", source: "profile" },
+        transport: { stance: "priority", text: "Her party profile names \"no investment in transit or transportation\" among the issues that led her to run.", source: "profile" },
+      },
+    },
+
+    // ───────────── PORT COQUITLAM ─────────────
+    {
+      id: "adams", name: "Keenan Adams", riding: "poco", party: "con", incumbent: false,
+      background: "Railway locomotive engineer who trains new railway workers, and president of Teamsters Canada Rail Conference Local 320. Has lived in Port Coquitlam since 2010. Ran in the riding in 2024.",
+      backgroundSource: ["profile", "ebcResults2024"],
+      priorities: ["A strong voice for working people"],
+      profile: { url: "https://conservativebc.ca/candidate/keenan-adams/", label: "Conservative candidate page" },
+      links: {},
+      positions: {},
+    },
+    {
+      id: "bates", name: "Lee-Ann Bates", riding: "poco", party: null, unaffiliated: true, incumbent: false,
+      background: "Single mother and business owner who has lived in the Tri-Cities for most of the past 15 years. Has worked in insurance, as a doula and as a therapist; now self-employed in education support and traffic management.",
+      backgroundSource: "profile",
+      priorities: ["Transparency", "Affordability"],
+      note: "On the ballot with no party affiliation. OneBC lists her as an endorsed candidate.",
+      profile: { url: "https://1bc.ca/candidates/lbates", label: "OneBC candidate page" },
+      links: {},
+      positions: {},
+    },
+    {
+      id: "dahlby", name: "Lewis C. Dahlby", riding: "poco", party: "lib", incumbent: false,
+      background: "Runs a trucking and excavating business. Born in Chilliwack, aged 70, and lives in Port Coquitlam. First ran for the federal Libertarians in 1988, and ran in this riding in 2024.",
+      backgroundSource: ["profile", "ebcResults2024"],
+      priorities: ["Personal and economic freedom"],
+      profile: { url: "https://libertarian.bc.ca/2026-candidates/", label: "Libertarian candidate page" },
+      links: {},
+      positions: {},
+    },
+    {
+      id: "farnworth", name: "Mike Farnworth", riding: "poco", party: "ndp", incumbent: true,
+      background: "Has lived in Port Coquitlam for more than 50 years. Served three terms on city council before being elected MLA in 1991. Has held several senior cabinet posts, most recently Minister of Transportation.",
+      backgroundSource: "profile",
+      priorities: ["Public health care and education", "Transportation", "Justice reform"],
+      profile: { url: "https://mikefarnworth.bcndp.ca", label: "BC NDP candidate page" },
+      links: { website: "https://mikefarnworth.bcndp.ca", email: "mike.farnworth@bcndp.ca" },
+      positions: {},
+    },
+    {
+      id: "hendy", name: "Stephanie Hendy", riding: "poco", party: "green", incumbent: false,
+      background: "Clinical exercise physiologist and disability-management specialist with more than 17 years in health and rehabilitation. Chaired the Okanagan Transit Alliance in 2024.",
+      backgroundSource: "profile",
+      priorities: ["Accessibility and health care access", "Forestry reform", "Better transportation"],
+      profile: { url: "https://bcgreens.ca/candidates-2026/stephanie-hendy/", label: "BC Greens candidate page" },
+      links: {},
+      positions: {
+        health: { stance: "priority", text: "Running to advocate for better accessibility and health care access.", source: "profile" },
+        transport: { stance: "priority", text: "Running to advocate for improved transportation.", source: "profile" },
+      },
+    },
   ],
 };

@@ -52,6 +52,16 @@ test("geocoder matches that can't place a home are flagged", () => {
   assert.equal(readGeocode(geocode(1, 1, { matchPrecision: "LOCALITY" })).problem, "imprecise");
   assert.equal(readGeocode(geocode(1, 1, { matchPrecision: "STREET" })).problem, "imprecise");
   assert.equal(readGeocode(geocode(1, 1, { score: 50 })).problem, "low-score");
+  // Real geocoder answer for "Lougheed Hwy and 287 St, Maple Ridge": wrong town.
+  const cumberland = { fullAddress: "287 Maple St, Cumberland, BC", matchPrecision: "BLOCK", score: 77, faults: [{ element: "INITIAL_GARBAGE", fault: "notAllowed" }, { element: "LOCALITY", fault: "missing" }, { element: "FAULTS", fault: "tooMany" }] };
+  assert.equal(readGeocode(geocode(1, 1, cumberland)).problem, "low-score");
+  assert.equal(readGeocode(geocode(1, 1, { score: 95, faults: [{ element: "LOCALITY", fault: "notMatched" }] })).problem, "low-score");
+  // Real answers: "Langley" is an alias of "Township of Langley", and a wrong
+  // city ("Haney Pl, Pitt Meadows") is corrected to Maple Ridge. Both are fine.
+  assert.equal(readGeocode(geocode(1, 1, { matchPrecision: "BLOCK", score: 97, faults: [{ element: "LOCALITY", fault: "isAlias", penalty: 1 }, { element: "PROVINCE", fault: "missing", penalty: 1 }] })).problem, undefined);
+  assert.equal(readGeocode(geocode(1, 1, { score: 95, faults: [{ element: "LOCALITY", fault: "isAlias", penalty: 4 }] })).problem, undefined);
+  // A clean match only misses the province (score 99).
+  assert.equal(readGeocode(geocode(1, 1, { score: 99, faults: [{ element: "PROVINCE", fault: "missing", penalty: 1 }] })).problem, undefined);
   const ok = readGeocode(geocode(10, 20, { matchPrecision: "block" }));
   assert.equal(ok.problem, undefined);
   assert.deepEqual(ok.point, [10, 20]);

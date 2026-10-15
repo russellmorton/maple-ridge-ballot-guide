@@ -3,13 +3,13 @@
 // Keep these facts in step with municipal/data.js and provincial/data.js.
 (() => {
   const DIFF = [
-    ["You're electing", "A mayor, six councillors and five SD42 school trustees, plus Yes or No on three recreation borrowing questions", "One MLA for your riding. The party that can hold the confidence of the legislature forms government, and its leader becomes premier."],
+    ["You're electing", "A mayor, six councillors and five SD42 school trustees, plus Yes or No on three recreation borrowing questions", "One MLA for your riding. The party that can win the support of most MLAs forms government, and its leader becomes premier."],
     ["Run by", "City of Maple Ridge: 604-467-7423", "Elections BC: 1-800-661-8683"],
-    ["Who can vote", "18 or older, a Canadian citizen, six months in B.C., and living in Maple Ridge or owning property there for 30+ days", "18 or older, a Canadian citizen, and living in B.C. for the six months before voting day. Owning property doesn't give you a vote."],
-    ["ID", "Registered voters don't need ID. New or unregistered voters register at the voting place with two pieces of ID.", "Every voter shows ID that proves their name and home address, or has someone vouch for them."],
-    ["Where to vote", "The voting places the City lists for Maple Ridge", "Any voting place or district electoral office in B.C."],
-    ["Advance voting", "October 7, 10, 14 and 15", "October 16 to 21, every day"],
-    ["By mail", "Your ballot must arrive by 8 pm on October 17", "Ask for a mail ballot by October 18. It must arrive by 8 pm on October 24."],
+    ["Who can vote", "18 or older, a Canadian citizen, six months in B.C., and living in Maple Ridge or owning property there for 30+ days", "18 or older on October 24, a Canadian citizen, and living in B.C. since April 23, 2026. There's no separate vote for property owners."],
+    ["ID", "Registered voters don't need ID. New or unregistered voters register at the voting place with two pieces of ID.", "Every voter must prove who they are and where they live: one piece of photo ID with your address, two documents with your name, or someone who vouches for you."],
+    ["Where to vote", "The voting places the City lists for Maple Ridge", "Any advance voting place in B.C. On October 24 you have an assigned voting place, but you can vote at another one."],
+    ["Advance voting", "October 7, 10, 14 and 15", "October 16 to 21, 8 a.m. to 8 p.m. Not every place is open every day."],
+    ["By mail", "Your ballot must arrive by 8 pm on October 17", "Ask for a package by October 18. Elections BC must receive it by 8 p.m. on October 24."],
   ];
   const rows = document.getElementById("diff-rows");
   const esc = (s) => String(s).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
