@@ -37,8 +37,17 @@
     chip.classList.toggle("closed", closed);
     card.dataset.closed = closed;
   }
-  // Open elections first, soonest first; closed ones last.
+  // Open elections first, soonest first; closed ones last. The buttons under
+  // the headline follow the same order.
+  const quick = document.getElementById("quick-go");
   cards
     .sort((a, b) => (a.dataset.closed === b.dataset.closed ? a.dataset.day.localeCompare(b.dataset.day) : a.dataset.closed === "true" ? 1 : -1))
-    .forEach((c) => list.appendChild(c));
+    .forEach((c) => {
+      list.appendChild(c);
+      const btn = quick?.querySelector(`[data-guide="${c.dataset.guide}"]`);
+      if (!btn) return;
+      quick.appendChild(btn);
+      btn.classList.toggle("closed", c.dataset.closed === "true");
+      if (c.dataset.closed === "true") btn.querySelector("[data-when]").textContent = "Voting has closed";
+    });
 })();
