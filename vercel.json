@@ -2,7 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
   "functions": {
-    "api/chat.js": { "includeFiles": "data.js", "maxDuration": 30 }
+    "api/chat.js": { "includeFiles": "{municipal,provincial}/data.js", "maxDuration": 30 },
+    "api/riding.js": { "maxDuration": 15 }
   },
   "headers": [
     {
@@ -15,7 +16,11 @@
       ]
     },
     {
-      "source": "/(data|app).js",
+      "source": "/(municipal|provincial)/(data|app).js",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+    },
+    {
+      "source": "/(guide.css|chat.js|theme.js|landing.js)",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
     }
   ]

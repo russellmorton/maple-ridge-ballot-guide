@@ -1,5 +1,6 @@
-// "Ask the guide" chat panel. Talks to /api/chat, which answers from the
-// guide's own content. The conversation lives only in this page's memory.
+// "Ask the guide" chat panel, shared by both guides. Talks to /api/chat, which
+// answers from the current guide's own content (<body data-guide="...">).
+// The conversation lives only in this page's memory.
 (() => {
   const $ = (id) => document.getElementById(id);
   const launch = $("chat-launch");
@@ -10,12 +11,27 @@
   const sendBtn = $("chat-send");
   if (!launch || !panel) return;
 
-  const SUGGESTIONS = [
-    "What are the three ballot questions about?",
-    "Which council candidates oppose the recreation plan?",
-    "Where and when can I vote?",
-    "What ID do I need to vote?",
-  ];
+  const GUIDE = document.body.dataset.guide === "provincial" ? "provincial" : "municipal";
+  const COPY = {
+    municipal: {
+      intro: "Hi. Ask me about the candidates, the three recreation borrowing questions, or how and where to vote. I only use what's in this guide, and I don't recommend candidates.",
+      suggestions: [
+        "What are the three ballot questions about?",
+        "Which council candidates oppose the recreation plan?",
+        "Where and when can I vote?",
+        "What ID do I need to vote?",
+      ],
+    },
+    provincial: {
+      intro: "Hi. Ask me about the candidates in the ridings this guide covers, what the parties are promising, or how and where to vote on October 24. I only use what's in this guide, and I don't recommend candidates or parties.",
+      suggestions: [
+        "Who is running in Maple Ridge East?",
+        "What are the parties promising on housing?",
+        "When is advance voting?",
+        "What ID do I need to vote?",
+      ],
+    },
+  }[GUIDE];
   const MAX_SENT = 11; // last five exchanges plus the new question
   const MAX_CHARS = 7000;
 
@@ -53,11 +69,11 @@
 
   function showIntro() {
     log.innerHTML = "";
-    const intro = bubble("bot", "Hi. Ask me about the candidates, the three recreation borrowing questions, or how and where to vote. I only use what's in this guide, and I don't recommend candidates.");
+    const intro = bubble("bot", esc(COPY.intro));
     intro.classList.add("msg-intro");
     const chips = document.createElement("div");
     chips.className = "chat-suggest";
-    chips.innerHTML = SUGGESTIONS.map((q) => `<button type="button" class="chip-btn">${esc(q)}</button>`).join("");
+    chips.innerHTML = COPY.suggestions.map((q) => `<button type="button" class="chip-btn">${esc(q)}</button>`).join("");
     chips.addEventListener("click", (e) => {
       const b = e.target.closest(".chip-btn");
       if (b) send(b.textContent);
@@ -99,7 +115,7 @@
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: outgoing() }),
+        body: JSON.stringify({ guide: GUIDE, messages: outgoing() }),
       });
       if (!res.ok || !res.body) {
         const err = await res.json().catch(() => ({}));

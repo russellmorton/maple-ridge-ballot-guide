@@ -694,7 +694,7 @@
       btn.disabled = true;
       btn.textContent = "Sending…";
       try {
-        const r = await fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...data, startedAt }) });
+        const r = await fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...data, guide: "municipal", startedAt }) });
         const out = await r.json().catch(() => ({}));
         if (!r.ok || !out.ok) throw new Error(out.error || "Your feedback didn't send. Try again in a minute.");
         form.reset();
@@ -809,24 +809,6 @@
     renderCompare();
   });
   window.addEventListener("hashchange", route);
-
-  // ── Theme: sun/moon toggle. Follows the device until the visitor picks. ──
-  const themeBtn = document.getElementById("theme-toggle");
-  const setTheme = (t) => {
-    document.documentElement.dataset.theme = t;
-    const next = t === "dark" ? "light" : "dark";
-    themeBtn.setAttribute("aria-label", `Switch to ${next} mode`);
-    themeBtn.title = `Switch to ${next} mode`;
-  };
-  const savedTheme = () => { try { return localStorage.getItem("mr-theme"); } catch { return null; } };
-  themeBtn.addEventListener("click", () => {
-    const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-    try { localStorage.setItem("mr-theme", t); } catch { /* ignore */ }
-    setTheme(t);
-  });
-  const deviceDark = matchMedia("(prefers-color-scheme: dark)");
-  deviceDark.addEventListener?.("change", (e) => { if (!savedTheme()) setTheme(e.matches ? "dark" : "light"); });
-  setTheme(document.documentElement.dataset.theme || (deviceDark.matches ? "dark" : "light"));
 
   renderAll();
   renderFeedback();

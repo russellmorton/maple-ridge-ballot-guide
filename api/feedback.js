@@ -3,9 +3,14 @@
 // to the publisher.
 import { put } from "@vercel/blob";
 
+const GUIDES = { municipal: "Municipal guide", provincial: "Provincial guide" };
+
 const TOPICS = {
   candidate: "Correction to a candidate's information",
+  party: "A party's platform or information",
+  riding: "Riding lookup or riding information",
   ballot: "Ballot questions or voting information",
+  voting: "Voting information",
   site: "Something on the site isn't working",
   other: "Other feedback",
 };
@@ -27,7 +32,9 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true });
   }
 
-  const topic = TOPICS[body.topic] ? body.topic : "other";
+  // Pages from before the provincial guide existed send no guide: they're municipal.
+  const guide = Object.hasOwn(GUIDES, body.guide) ? body.guide : "municipal";
+  const topic = Object.hasOwn(TOPICS, body.topic) ? body.topic : "other";
   const message = clean(body.message, 4000);
   const name = clean(body.name, 100);
   const email = clean(body.email, 200);
@@ -41,7 +48,7 @@ export default async function handler(req, res) {
   }
 
   const receivedAt = new Date().toISOString();
-  const record = { receivedAt, topic: TOPICS[topic], candidate: candidate || null, message, name: name || null, email: email || null };
+  const record = { receivedAt, guide: GUIDES[guide], topic: TOPICS[topic], candidate: candidate || null, message, name: name || null, email: email || null };
 
   try {
     const id = Math.random().toString(36).slice(2, 8);
@@ -59,6 +66,7 @@ export default async function handler(req, res) {
   const to = process.env.FEEDBACK_TO_EMAIL;
   if (key && to) {
     const text = [
+      `Guide: ${GUIDES[guide]}`,
       `Topic: ${TOPICS[topic]}`,
       candidate ? `Candidate: ${candidate}` : null,
       `From: ${name || "(no name)"} ${email ? `<${email}>` : "(no email)"}`,
@@ -73,7 +81,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           from: "Maple Ridge Ballot Guide <onboarding@resend.dev>",
           to: [to],
-          subject: `Ballot guide feedback: ${TOPICS[topic]}${candidate ? ` (${candidate})` : ""}`,
+          subject: `Ballot guide feedback (${guide}): ${TOPICS[topic]}${candidate ? ` (${candidate})` : ""}`,
           text,
           ...(email ? { reply_to: email } : {}),
         }),
