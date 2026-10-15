@@ -49,7 +49,7 @@ export function makeHandler({ districts, fetchJson }) {
       return fail(503, "The address lookup isn't working right now.");
     }
 
-    const base = { ok: true, matchedAddress: match.address || null, precision: match.precision || null };
+    const base = { ok: true, matchedAddress: match.address || null, precision: match.precision || null, ...(match.alternatives ? { alternatives: match.alternatives } : {}) };
     if (match.problem) return res.status(200).json({ ...base, status: match.problem });
 
     // nearBoundary: true/false against the bundled boundaries, null if we

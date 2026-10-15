@@ -67,10 +67,47 @@ test("geocoder matches that can't place a home are flagged", () => {
   assert.deepEqual(ok.point, [10, 20]);
 });
 
+// Real geocoder answers (trimmed) for addresses typed without a city.
+const feature = (fullAddress, localityName, matchPrecision, score, faults = []) => ({ geometry: { coordinates: [1252000, 470000] }, properties: { fullAddress, localityName, matchPrecision, score, faults } });
+const NO_CITY = [{ element: "LOCALITY", fault: "missing", penalty: 10 }, { element: "PROVINCE", fault: "missing", penalty: 1 }];
+
+test("a unit number with no city is a precise match", () => {
+  // "12 100 Test St"
+  const r = readGeocode({ features: [
+    feature("UNIT 12 -- 100 Test St, Maple Ridge, BC", "Maple Ridge", "UNIT", 89, [{ element: "UNIT_DESIGNATOR", fault: "missing", penalty: 0 }, ...NO_CITY]),
+    feature("Test St, Maple Ridge, BC", "Maple Ridge", "STREET", 66, NO_CITY),
+  ] });
+  assert.equal(r.problem, undefined);
+  assert.equal(r.precision, "UNIT");
+  assert.equal(r.address, "Unit 12, 100 Test St, Maple Ridge, BC");
+  // "12000 224 St": the other towns' 224 St only match at street level.
+  const r2 = readGeocode({ features: [
+    feature("12000 224 St, Maple Ridge, BC", "Maple Ridge", "BLOCK", 88, NO_CITY),
+    feature("224 St, Pitt Meadows, BC", "Pitt Meadows", "STREET", 66, NO_CITY),
+    feature("224 St, Township of Langley, BC", "Township of Langley", "STREET", 66, NO_CITY),
+  ] });
+  assert.equal(r2.problem, undefined);
+});
+
+test("the same address in several towns asks for the city", () => {
+  // "100 Main St"
+  const r = readGeocode({ features: [
+    feature("100 Main St, Lillooet, BC", "Lillooet", "CIVIC_NUMBER", 89, NO_CITY),
+    feature("100 Main St, Penticton, BC", "Penticton", "CIVIC_NUMBER", 89, NO_CITY),
+    feature("100 Main St, Barkerville, BC", "Barkerville", "BLOCK", 88, NO_CITY),
+  ] });
+  assert.equal(r.problem, "ambiguous");
+  assert.deepEqual(r.alternatives, ["100 Main St, Penticton, BC", "100 Main St, Barkerville, BC"]);
+  // A much weaker match elsewhere doesn't count.
+  const r2 = readGeocode({ features: [feature("1 A St, Maple Ridge, BC", "Maple Ridge", "CIVIC_NUMBER", 99), feature("1 A St, Mission, BC", "Mission", "CIVIC_NUMBER", 90)] });
+  assert.equal(r2.problem, undefined);
+});
+
 test("request URLs ask for BC Albers and query the point in that projection", () => {
   const g = new URL(geocoderUrl("11995 Haney Place, Maple Ridge"));
   assert.equal(g.searchParams.get("addressString"), "11995 Haney Place, Maple Ridge");
   assert.equal(g.searchParams.get("outputSRS"), "3005");
+  assert.equal(g.searchParams.get("maxResults"), "3");
   assert.equal(new URL(wfsUrl([1234.5, 678])).searchParams.get("CQL_FILTER"), "INTERSECTS(SHAPE, SRID=3005;POINT(1234.5 678))");
 });
 

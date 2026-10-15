@@ -219,6 +219,10 @@
           ${confirm}
         </div>`;
     }
+    if (r.status === "ambiguous") {
+      const all = [r.matchedAddress, ...(r.alternatives || [])].filter(Boolean);
+      return `<div class="result warn"><p><strong>That address is in more than one town.</strong> Add your city so we pick the right one${all.length ? `, for example ${all.slice(0, 3).map((a) => `<em>${esc(a)}</em>`).join(" or ")}` : ""}.</p></div>`;
+    }
     if (r.status === "imprecise" || r.status === "low-score") {
       return `<div class="result warn"><p><strong>We couldn't pin down that address.</strong>${r.matchedAddress ? ` The closest match was <em>${esc(r.matchedAddress)}</em>, which isn't precise enough to tell which riding it's in.` : ""}</p>${retry}</div>`;
     }
