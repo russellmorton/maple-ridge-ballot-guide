@@ -5,6 +5,26 @@
 //
 // DRAFT: research in progress. Nothing below has been checked against the
 // original pages yet; don't publish until review.status is "ai-checked".
+//
+// Still to do (read original pages, not search summaries; quotes word for word):
+// 1. Ridings: Maple Ridge-Pitt Meadows, Maple Ridge East, plus every riding that
+//    shares a boundary with them (check with DataBC boundaries; likely Port
+//    Coquitlam, Coquitlam-Burke Mountain, Abbotsford-Mission, Langley-Walnut
+//    Grove; decide on any wilderness-only neighbours). Then run
+//    scripts/fetch-districts.mjs.
+// 2. Candidates: Elections BC's official candidate list for Oct 24, 2026, in
+//    ballot order. Backgrounds and positions from local news, debates,
+//    candidate and party pages.
+// 3. 2024 results per riding: Elections BC Statement of Votes (2024).
+// 4. Parties: leaders, platforms by issue, seats at dissolution (order parties
+//    by those seats). Context: why the election was called, neutrally, with
+//    the stated reason and the main criticism, each sourced.
+// 5. Voting: hours, where you can vote, ID and vouching, mail ballots, time
+//    off work, Elections BC phone and Where to Vote URL. Then check the
+//    provincial column of the table in /landing.js matches.
+// 6. Party colours: confirm no party on these ballots uses plum or ochre.
+// 7. A second-model fact-check of every claim against page text, then fill
+//    `review` and `changes`.
 
 window.GUIDE = {
   lastChecked: null,

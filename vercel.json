@@ -1,6 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
+  "rewrites": [
+    { "source": "/municipal", "destination": "/municipal/index" },
+    { "source": "/provincial", "destination": "/provincial/index" }
+  ],
   "functions": {
     "api/chat.js": { "includeFiles": "{municipal,provincial}/data.js", "maxDuration": 30 },
     "api/riding.js": { "maxDuration": 15 }
