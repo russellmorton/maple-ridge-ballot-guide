@@ -44,6 +44,8 @@
   };
   const shortDate = (iso) => new Date(iso + "T12:00:00Z").toLocaleDateString("en-CA", { month: "short", day: "numeric", timeZone: "UTC" });
   const pollsOpen = () => Date.now() < Date.parse(G.pollsClose);
+  // Once polls close, the guide becomes a record of the campaign: no planner.
+  const votingOver = () => !pollsOpen();
   const advanceToday = () => G.advanceDates.includes(pacificToday());
 
   // ── Sources ──
@@ -100,7 +102,9 @@
     persist();
     renderAll();
   };
+  const showPicked = (c) => !votingOver() && saved.pick === c.id;
   const ovalBtn = (c) => {
+    if (votingOver()) return "";
     const on = saved.pick === c.id;
     const elsewhere = saved.riding && c.riding !== saved.riding;
     const taken = !on && saved.pick && !elsewhere;
@@ -130,19 +134,27 @@
     };
     const list = (items) => (items?.length ? `<ul>${items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>` : pending);
     const C = G.context || {};
-    // Build once so the address box keeps its text and focus; later renders
-    // only refresh the parts that change.
-    if (!$("#finder", view)) {
+    const over = votingOver();
+    const mode = over ? "after" : "before";
+    // Build once (and again when polls close) so the address box keeps its
+    // text and focus; later renders only refresh the parts that change.
+    if (view.dataset.mode !== mode) {
+      view.dataset.mode = mode;
+      const next = NEAR.length ? ` and the ${NUM[NEAR.length] || NEAR.length} ridings next door` : "";
       view.innerHTML = `
         <div class="stack">
-          <p class="lede">On Saturday, October 24, B.C. elects all <em>${C.seats || 93} MLAs</em>. Maple Ridge is split between <em>two ridings</em>, and you vote for one candidate in yours.</p>
-          <p class="prose muted">This guide covers every candidate in Maple Ridge's two ridings${NEAR.length ? ` and the ${NUM[NEAR.length] || NEAR.length} ridings next door` : ""}, what each party is promising, and how to vote. Every statement links to where it came from.</p>
+          <p class="lede">${over
+            ? `On Saturday, October 24, B.C. elected all <em>${C.seats || 93} MLAs</em>. Maple Ridge is split between <em>two ridings</em>, each electing one MLA.`
+            : `On Saturday, October 24, B.C. elects all <em>${C.seats || 93} MLAs</em>. Maple Ridge is split between <em>two ridings</em>, and you vote for one candidate in yours.`}</p>
+          <p class="prose muted">${over
+            ? `This guide covers every candidate in Maple Ridge's two ridings${next} and what each party promised. Every statement links to where it came from.`
+            : `This guide covers every candidate in Maple Ridge's two ridings${next}, what each party is promising, and how to vote. Every statement links to where it came from.`}</p>
         </div>
 
         <div class="panel finder" id="finder">
           <div class="stack" style="gap:.3rem">
             <h3 style="font-size:1.35rem">Find your riding</h3>
-            <p class="muted">Enter your home address. The guide checks it against the official riding boundaries and shows who's on your ballot.</p>
+            <p class="muted">Enter your home address. The guide checks it against the official riding boundaries and shows ${over ? "who ran in your riding" : "who's on your ballot"}.</p>
           </div>
           <form id="finder-form" novalidate>
             <label class="sr-only" for="addr">Home address</label>
@@ -160,7 +172,7 @@
           <div class="ballot-row"><h3>Forming government</h3><span class="rule">${C.majority || 47} of ${C.seats || 93} seats</span><p class="what">The party that can win the support of most MLAs in the legislature forms government, and its leader becomes premier. ${C.majority || 47} seats is a majority.</p></div>
           <div class="ballot-row"><h3>The premier isn't on your ballot</h3><span class="rule">Only in their own riding</span><p class="what">You don't vote for premier directly. Party leaders appear on the ballot only in the riding where they're running.</p></div>
         </div>
-
+${over ? "" : `
         <div class="grid-2">
           <div class="panel">
             <h3>Advance voting and Final Voting Day</h3>
@@ -184,14 +196,15 @@
           <div id="start-where"></div>
           ${V.accessible ? `<p><strong>Accessibility:</strong> ${esc(V.accessible)}</p>` : ""}
           <span class="src-group">${srcLink(V.source)}${srcLink("ebcAccess")}${srcLink("ebcTimeOff")}</span>
-        </div>
+        </div>`}
 
         ${C.why ? `<div class="panel prose"><span class="eyebrow">Why there's an election now</span><p>${esc(C.why)}</p>${C.source ? srcLink(C.source) : ""}</div>` : ""}`;
     }
     $("#pick-riding", view).innerHTML = `<span class="muted" style="font-size:.9rem">${saved.riding ? "Your riding:" : "Or choose your riding:"}</span>${ridingButtons("data-set-riding")}`;
     $("#finder-result", view).innerHTML = finderResult();
     const r = ridingById[saved.riding];
-    $("#start-where", view).innerHTML = r ? placesHtml(r) : `<p class="muted" style="font-size:.9rem">Find or choose your riding above to see its advance voting places and district electoral office.</p>`;
+    const where = $("#start-where", view);
+    if (where) where.innerHTML = r ? placesHtml(r) : `<p class="muted" style="font-size:.9rem">Find or choose your riding above to see its advance voting places and district electoral office.</p>`;
   }
 
   // The answer from /api/riding, in words.
@@ -199,7 +212,7 @@
     const r = ui.lookup;
     if (!r) return "";
     if (r.busy) return `<div class="result"><p>Looking up that address…</p></div>`;
-    const confirm = `<p class="fine">Boundary files can't be the final word on your riding. Confirm with ${whereToVote()} before you vote.</p>`;
+    const confirm = votingOver() ? "" : `<p class="fine">Boundary files can't be the final word on your riding. Confirm with ${whereToVote()} before you vote.</p>`;
     const retry = `<p>Try the full address with the street number and city, for example <em>11995 Haney Place, Maple Ridge</em>.</p>`;
     if (r.error) return `<div class="result warn"><p>${esc(r.error)}</p><p>You can choose your riding below, or look it up on ${whereToVote()}.</p></div>`;
     if (r.status === "found") {
@@ -341,12 +354,12 @@
             ${resultsHtml(r)}
           </div>
         </div>
-        <details class="where-details"${mine ? " open" : ""}>
+        ${votingOver() ? "" : `<details class="where-details"${mine ? " open" : ""}>
           <summary>Where to vote in ${esc(r.name)}</summary>
           <div class="stack" style="gap:.6rem;margin-top:.6rem">${placesHtml(r)}
             <p class="muted" style="font-size:.88rem">You can vote at any advance voting place in B.C., not just these. On October 24, check your Where to Vote card or ${whereToVote("Elections BC's Where to Vote")}.</p>
           </div>
-        </details>
+        </details>`}
       </article>`;
   }
 
@@ -367,7 +380,7 @@
 
   function card(c) {
     return `
-      <article class="card ${saved.pick === c.id ? "picked" : ""}" data-card="${c.id}">
+      <article class="card ${showPicked(c) ? "picked" : ""}" data-card="${c.id}">
         <div class="card-top">
           <span class="mono-av" aria-hidden="true">${initials(c.name)}</span>
           <div style="min-width:0">
@@ -561,7 +574,7 @@
     const cols = G.issues;
     const head = `<tr><th class="cand">Candidate</th>${cols.map((col) => `<th title="${esc(col.question)}">${esc(col.short)}</th>`).join("")}</tr>`;
     const rows = cands.map((c) => `
-      <tr class="${saved.pick === c.id ? "picked" : ""}">
+      <tr class="${showPicked(c) ? "picked" : ""}">
         <td class="cand"><button class="linkish" type="button" data-open="${c.id}">${esc(c.name)}</button><br><span class="muted" style="font-size:.8rem">${esc(partyName(c))}</span></td>
         ${cols.map((col) => {
           const st = c.positions?.[col.id]?.stance || "none";
@@ -917,6 +930,17 @@
     $("#fb-cand-field").hidden = false;
   };
 
+  // ── After the vote ──
+  function renderAfterVote() {
+    const el = $("#after-vote");
+    el.hidden = !votingOver();
+    if (el.hidden) return;
+    el.innerHTML = `
+      <h2>This guide is now a record of the campaign</h2>
+      <p>Voting ended at 8 pm on Saturday, October 24. Election night results are preliminary until Elections BC's final count. Results are on <a href="https://elections.bc.ca/" target="_blank" rel="noopener">Elections BC's website</a>.</p>
+      <p>The vote planner is switched off. Everything else stays as it was on voting day.</p>`;
+  }
+
   // ── Header bits ──
   function renderChrome() {
     const today = pacificToday();
@@ -926,8 +950,9 @@
     if (d > 1) html = `<b>${d}</b><span class="cd-text"><strong>days until voting day</strong>${adv || `<span>Saturday, Oct 24</span>`}</span>`;
     else if (d === 1) html = `<b class="word">Tmrw</b><span class="cd-text"><strong>Voting day is tomorrow</strong><span>Saturday, Oct 24</span></span>`;
     else if (d === 0 && pollsOpen()) html = `<b class="word">Today</b><span class="cd-text"><strong>Polls are open</strong><span>Until 8 pm</span></span>`;
-    else html = `<span class="cd-text closed">Voting has closed. Results will be posted by <a href="https://elections.bc.ca/" target="_blank" rel="noopener">Elections BC</a>.</span>`;
+    else html = `<span class="cd-text closed"><strong>Voting has closed</strong><span>Saturday, Oct 24</span></span>`;
     $("#countdown").innerHTML = html;
+    $('.tabs a[href="#plan"]').hidden = votingOver();
     const badge = $("#plan-count");
     badge.hidden = !saved.pick;
     badge.textContent = saved.pick ? "1" : "";
@@ -937,6 +962,7 @@
 
   function renderAll() {
     renderChrome();
+    renderAfterVote();
     renderStart();
     renderRidings();
     renderCandidates();
@@ -957,6 +983,7 @@
     if (h.startsWith("c-") && byId[h.slice(2)]) { open = h.slice(2); h = "candidates"; }
     if (h.startsWith("r-") && ridingById[h.slice(2)]) { scrollTo = h; h = "ridings"; }
     if (!VIEWS.includes(h)) h = "start";
+    if (h === "plan" && votingOver()) { h = "start"; history.replaceState(null, "", "#start"); }
     for (const v of VIEWS) $(`#view-${v}`).hidden = v !== h;
     document.body.dataset.view = h;
     document.querySelectorAll(".tabs a").forEach((a) => { if (a.getAttribute("href") === "#" + h) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
@@ -1025,6 +1052,10 @@
     lookup(address);
   });
   window.addEventListener("hashchange", route);
+
+  // Switch to the after-the-vote layout when polls close, without a reload.
+  const untilClose = Date.parse(G.pollsClose) - Date.now();
+  if (untilClose > 0 && untilClose < 2 ** 31 - 1e4) setTimeout(() => { renderAll(); route(); }, untilClose + 1000);
 
   renderAll();
   renderFeedback();

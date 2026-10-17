@@ -24,6 +24,8 @@
   const pacificToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Vancouver" }).format(new Date());
   const dayDiff = (a, b) => Math.round((Date.parse(b + "T00:00:00Z") - Date.parse(a + "T00:00:00Z")) / 86400000);
   const ELECTION_DATE = G.electionDay.slice(0, 10);
+  // Once polls close, the guide becomes a record of the campaign: no planner.
+  const votingOver = () => Date.now() >= Date.parse(G.pollsClose);
   const fmtDay = (iso) => {
     const d = new Date(iso + "T12:00:00Z");
     return {
@@ -71,7 +73,9 @@
     persist();
     renderAll();
   };
+  const showPicked = (c) => !votingOver() && isPicked(c);
   const ovalBtn = (c) => {
+    if (votingOver()) return "";
     const on = isPicked(c);
     const full = !on && raceFull(c.race);
     const seats = G.races[c.race].seats;
@@ -89,6 +93,7 @@
   // ── START ──
   function renderStart() {
     const today = pacificToday();
+    const over = votingOver();
     const counts = Object.fromEntries(RACES.map((r) => [r, inRace(r).length]));
     const dateTile = (iso, main) => {
       const f = fmtDay(iso);
@@ -102,19 +107,21 @@
       </a>`;
     $("#view-start").innerHTML = `
       <div class="stack">
-        <p class="lede">On Saturday, October 17, Maple Ridge elects a <em>mayor</em>, <em>six councillors</em> and <em>five school trustees</em>, and votes on borrowing <em>$393 million</em> for recreation.</p>
+        <p class="lede">${over
+          ? "On Saturday, October 17, Maple Ridge elected a <em>mayor</em>, <em>six councillors</em> and <em>five school trustees</em>, and voted on borrowing <em>$393 million</em> for recreation."
+          : "On Saturday, October 17, Maple Ridge elects a <em>mayor</em>, <em>six councillors</em> and <em>five school trustees</em>, and votes on borrowing <em>$393 million</em> for recreation."}</p>
         <p class="prose muted">This guide covers every name on the City's official candidate list, explains each ballot question in plain language, and lets you compare candidates on what they've said in public. Every statement links to where it came from.</p>
       </div>
 
       <div class="ballot-paper">
-        <header><span class="eyebrow">What's on your ballot</span><span class="eyebrow">4 parts</span></header>
+        <header><span class="eyebrow">${over ? "What was on the ballot" : "What's on your ballot"}</span><span class="eyebrow">4 parts</span></header>
         ${row("#candidates", "mayor", "Mayor", `${counts.mayor} running, vote for 1`, G.races.mayor.what)}
         ${row("#candidates", "council", "Councillor", `${counts.council} running, vote for up to 6`, G.races.council.what)}
         ${row("#candidates", "trustee", "School Trustee, SD42", `${counts.trustee} running, vote for up to 5`, G.races.trustee.what)}
         ${row("#questions", null, "Three recreation borrowing questions", "Yes or No on each", "An aquatic centre in Hammond, a park on the Golf Lane golf course site, and two new rinks at Albion. Each is a separate question.")}
       </div>
-      <p class="muted" style="margin-top:-1rem;font-size:.9rem">You can vote for fewer candidates than there are seats. You don't have to answer every question.</p>
-
+      ${over ? "" : `<p class="muted" style="margin-top:-1rem;font-size:.9rem">You can vote for fewer candidates than there are seats. You don't have to answer every question.</p>`}
+${over ? "" : `
       <div class="grid-2">
         <div class="panel">
           <h3>Advance voting and General Voting Day</h3>
@@ -139,7 +146,7 @@
         <h3>Voting places on October 17</h3>
         <p>The City lists these eight places. Check the City's <a href="https://www.mapleridge.ca/media/file/election-voting-place-map-2026" target="_blank" rel="noopener">voting place map</a> or call the elections office at 604-467-7423 if you're not sure where to go.</p>
         <ul class="places">${G.pollingPlaces.map(([n, a]) => `<li>${esc(n)}<small>${esc(a)}</small></li>`).join("")}</ul>
-      </div>`;
+      </div>`}`;
   }
 
   // ── BALLOT QUESTIONS ──
@@ -222,7 +229,7 @@
 
   function card(c) {
     return `
-      <article class="card ${isPicked(c) ? "picked" : ""}" data-card="${c.id}">
+      <article class="card ${showPicked(c) ? "picked" : ""}" data-card="${c.id}">
         <div class="card-top">
           <span class="mono-av" aria-hidden="true">${initials(c.name)}</span>
           <div style="min-width:0">
@@ -352,7 +359,7 @@
 
     const head = `<tr><th class="cand">Candidate</th>${cols.map((col) => `<th title="${esc(col.question || col.label)}">${esc(col.short || col.label)}</th>`).join("")}</tr>`;
     const rows = cands.map((c) => `
-      <tr class="${isPicked(c) ? "picked" : ""}">
+      <tr class="${showPicked(c) ? "picked" : ""}">
         <td class="cand"><button class="linkish" type="button" data-open="${c.id}">${esc(c.name)}</button>${c.incumbent ? ` <span class="badge inc">Inc.</span>` : ""}</td>
         ${cols.map((col) => {
           const selected = ui.cell && ui.cell.c === c.id && ui.cell.k === col.id;
@@ -723,6 +730,17 @@
     $("#fb-cand-field").hidden = false;
   };
 
+  // ── After the vote ──
+  function renderAfterVote() {
+    const el = $("#after-vote");
+    el.hidden = !votingOver();
+    if (el.hidden) return;
+    el.innerHTML = `
+      <h2>This guide is now a record of the campaign</h2>
+      <p>Voting ended at 8 pm on Saturday, October 17. Election night results are unofficial until the City declares the official results, which it posts on its <a href="https://www.mapleridge.ca/your-government/municipal-elections" target="_blank" rel="noopener">election page</a>.</p>
+      <p>The ballot planner is switched off. Everything else stays as it was on voting day.</p>`;
+  }
+
   // ── Header bits ──
   function renderChrome() {
     const today = pacificToday();
@@ -732,9 +750,10 @@
     if (d > 1) html = `<b>${d}</b><span class="cd-text"><strong>days until voting day</strong><span>Saturday, Oct 17, 8 am to 8 pm</span></span>`;
     else if (d === 1) html = `<b class="word">Tmrw</b><span class="cd-text"><strong>Voting day is tomorrow</strong><span>Saturday, Oct 17, 8 am to 8 pm</span></span>`;
     else if (d === 0 && now < Date.parse(G.pollsClose)) html = `<b class="word">Today</b><span class="cd-text"><strong>Polls are open</strong><span>Until 8 pm</span></span>`;
-    else html = `<span class="cd-text closed">Voting has closed. Results will be posted by the <a href="https://www.mapleridge.ca/your-government/municipal-elections" target="_blank" rel="noopener">City of Maple Ridge</a>.</span>`;
+    else html = `<span class="cd-text closed"><strong>Voting has closed</strong><span>Saturday, Oct 17</span></span>`;
     $("#countdown").innerHTML = html;
     const n = RACES.reduce((s, r) => s + saved.picks[r].length, 0);
+    $('.tabs a[href="#ballot"]').hidden = votingOver();
     const badge = $("#ballot-count");
     badge.hidden = !n;
     badge.textContent = n;
@@ -743,6 +762,7 @@
 
   function renderAll() {
     renderChrome();
+    renderAfterVote();
     renderStart();
     renderQuestions();
     renderCandidates();
@@ -761,6 +781,7 @@
     let open = null;
     if (h.startsWith("c-") && byId[h.slice(2)]) { open = h.slice(2); h = "candidates"; }
     if (!VIEWS.includes(h)) h = "start";
+    if (h === "ballot" && votingOver()) { h = "start"; history.replaceState(null, "", "#start"); }
     for (const v of VIEWS) $(`#view-${v}`).hidden = v !== h;
     document.body.dataset.view = h;
     document.querySelectorAll(".tabs a").forEach((a) => { if (a.getAttribute("href") === "#" + h) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
@@ -809,6 +830,10 @@
     renderCompare();
   });
   window.addEventListener("hashchange", route);
+
+  // Switch to the after-the-vote layout when polls close, without a reload.
+  const untilClose = Date.parse(G.pollsClose) - Date.now();
+  if (untilClose > 0 && untilClose < 2 ** 31 - 1e4) setTimeout(() => { renderAll(); route(); }, untilClose + 1000);
 
   renderAll();
   renderFeedback();

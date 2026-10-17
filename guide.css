@@ -281,6 +281,9 @@ dialog::backdrop { background: rgb(10 20 16 / 0.55); }
 .notice { display: grid; gap: 0.35rem; max-width: 66ch; padding: 1rem 1.2rem; border: 1px solid var(--brand); border-radius: var(--r); background: var(--brand-soft); }
 .notice h3 { font-size: 1.05rem; }
 .notice p + h3 { margin-top: 0.6rem; }
+/* After the vote: shown above every view once polls close */
+.after-vote { margin-bottom: 2rem; }
+.after-vote h2 { font-size: 1.15rem; }
 .my-race { display: flex; flex-direction: column; gap: 0.6rem; }
 .slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 0.5rem; }
 .slot { border: 1px solid var(--line); border-radius: var(--r); padding: 0.55rem 0.75rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; background: var(--sheet); min-width: 0; }

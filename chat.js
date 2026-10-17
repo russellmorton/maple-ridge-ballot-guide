@@ -12,6 +12,7 @@
   if (!launch || !panel) return;
 
   const GUIDE = document.body.dataset.guide === "provincial" ? "provincial" : "municipal";
+  const votingOver = () => Date.now() >= Date.parse(window.GUIDE?.pollsClose || "");
   const COPY = {
     municipal: {
       intro: "Hi. Ask me about the candidates, the three recreation borrowing questions, or how and where to vote. I only use what's in this guide, and I don't recommend candidates.",
@@ -21,6 +22,15 @@
         "Where and when can I vote?",
         "What ID do I need to vote?",
       ],
+      after: {
+        intro: "Hi. Voting closed at 8 pm on October 17. Ask me about the candidates and what they said during the campaign, or the three recreation borrowing questions. I only use what's in this guide, which doesn't include results.",
+        suggestions: [
+          "What were the three ballot questions about?",
+          "Which council candidates opposed the recreation plan?",
+          "Who ran for mayor?",
+          "Where can I find the results?",
+        ],
+      },
     },
     provincial: {
       intro: "Hi. Ask me about the candidates in the ridings this guide covers, what the parties are promising, or how and where to vote on October 24. I only use what's in this guide, and I don't recommend candidates or parties.",
@@ -30,6 +40,15 @@
         "When is advance voting?",
         "What ID do I need to vote?",
       ],
+      after: {
+        intro: "Hi. Voting closed at 8 pm on October 24. Ask me about the candidates in the ridings this guide covers or what the parties promised. I only use what's in this guide, which doesn't include results.",
+        suggestions: [
+          "Who ran in Maple Ridge East?",
+          "What did the parties promise on housing?",
+          "How close was Maple Ridge East in 2024?",
+          "Where can I find the results?",
+        ],
+      },
     },
   }[GUIDE];
   const MAX_SENT = 11; // last five exchanges plus the new question
@@ -69,11 +88,12 @@
 
   function showIntro() {
     log.innerHTML = "";
-    const intro = bubble("bot", esc(COPY.intro));
+    const copy = votingOver() ? COPY.after : COPY;
+    const intro = bubble("bot", esc(copy.intro));
     intro.classList.add("msg-intro");
     const chips = document.createElement("div");
     chips.className = "chat-suggest";
-    chips.innerHTML = COPY.suggestions.map((q) => `<button type="button" class="chip-btn">${esc(q)}</button>`).join("");
+    chips.innerHTML = copy.suggestions.map((q) => `<button type="button" class="chip-btn">${esc(q)}</button>`).join("");
     chips.addEventListener("click", (e) => {
       const b = e.target.closest(".chip-btn");
       if (b) send(b.textContent);
