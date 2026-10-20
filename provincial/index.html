@@ -56,7 +56,11 @@
 /* ── Find your riding ── */
 .finder { gap: 0.9rem; border-top: 4px solid var(--brand); }
 .finder form { display: flex; flex-wrap: wrap; gap: 0.6rem; }
-.finder input[type="text"] { flex: 1 1 260px; min-width: 0; padding: 0.65rem 0.8rem; border-radius: var(--r); border: 1px solid var(--line); background: var(--sheet); color: var(--ink); font: inherit; }
+.finder .addr-box { position: relative; flex: 1 1 260px; min-width: 0; }
+.finder input[type="text"] { width: 100%; padding: 0.65rem 0.8rem; border-radius: var(--r); border: 1px solid var(--line); background: var(--sheet); color: var(--ink); font: inherit; }
+.finder .suggest { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 10; margin: 0; padding: 0.25rem; list-style: none; background: var(--sheet); border: 1px solid var(--line); border-radius: var(--r); box-shadow: 0 10px 28px -10px rgb(0 0 0 / 0.35); }
+.finder .suggest li { padding: 0.55rem 0.65rem; border-radius: 4px; cursor: pointer; overflow-wrap: anywhere; }
+.finder .suggest li:hover, .finder .suggest li[aria-selected="true"] { background: var(--brand-soft); }
 .finder .btn.primary:disabled { opacity: 0.6; cursor: wait; }
 .finder .fine { font-size: 0.82rem; color: var(--muted); }
 .result { display: flex; flex-direction: column; gap: 0.6rem; padding: 0.9rem 1rem; border-radius: var(--r); background: var(--brand-soft); }

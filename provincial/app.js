@@ -158,10 +158,14 @@
           </div>
           <form id="finder-form" novalidate>
             <label class="sr-only" for="addr">Home address</label>
-            <input id="addr" name="address" type="text" autocomplete="street-address" maxlength="200" placeholder="e.g. 11995 Haney Place, Maple Ridge">
+            <div class="addr-box">
+              <input id="addr" name="address" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="addr-list" autocomplete="off" spellcheck="false" maxlength="200" placeholder="e.g. 11995 Haney Place, Maple Ridge">
+              <ul class="suggest" id="addr-list" role="listbox" aria-label="Suggested addresses" hidden></ul>
+            </div>
             <button class="btn primary" type="submit" id="addr-go">Find my riding</button>
           </form>
-          <p class="fine">Your address is sent to the B.C. government's address service to find where it is. It isn't stored anywhere, including on this device.</p>
+          <span class="sr-only" id="addr-status" aria-live="polite"></span>
+          <p class="fine">As you type, your address is sent to the B.C. government's address service to suggest matches and find where it is. It isn't stored anywhere, including on this device.</p>
           <div id="finder-result" aria-live="polite"></div>
           <div class="pick-riding" id="pick-riding"></div>
         </div>
@@ -261,6 +265,72 @@ ${over ? "" : `
       btn.disabled = false;
     }
     renderAll();
+  }
+
+  // Suggestions while typing, from /api/address-suggest. Kept in memory for
+  // this visit only. If they stop working, typing and searching still do.
+  const SUGGEST_MIN = 5;
+  const SUGGEST_DELAY_MS = 250;
+  const sug = { items: [], active: -1, seq: 0, timer: 0, off: false, cache: new Map() };
+
+  function showSuggestions(items) {
+    sug.items = items;
+    sug.active = -1;
+    const input = $("#addr"), list = $("#addr-list");
+    if (!input || !list) return;
+    list.innerHTML = items.map((a, i) => `<li role="option" id="addr-opt-${i}" aria-selected="false" data-suggest="${i}">${esc(a)}</li>`).join("");
+    list.hidden = !items.length;
+    input.setAttribute("aria-expanded", String(items.length > 0));
+    input.removeAttribute("aria-activedescendant");
+    $("#addr-status").textContent = items.length ? `${items.length} suggested address${items.length === 1 ? "" : "es"}. Use the up and down arrows to choose one.` : "";
+  }
+
+  // Also cancels a pending request, so a late answer can't reopen the list.
+  function closeSuggestions() {
+    clearTimeout(sug.timer);
+    sug.seq++;
+    if (sug.items.length) showSuggestions([]);
+  }
+
+  function setActive(i) {
+    const input = $("#addr"), list = $("#addr-list");
+    if (!input || !list) return;
+    sug.active = i;
+    [...list.children].forEach((li, j) => li.setAttribute("aria-selected", String(j === i)));
+    input.setAttribute("aria-activedescendant", `addr-opt-${i}`);
+    list.children[i]?.scrollIntoView({ block: "nearest" });
+  }
+
+  function chooseSuggestion(i) {
+    const address = sug.items[i];
+    if (!address) return;
+    $("#addr").value = address;
+    closeSuggestions();
+    lookup(address);
+  }
+
+  function suggestSoon(value) {
+    clearTimeout(sug.timer);
+    const text = value.replace(/\s+/g, " ").trim();
+    const key = text.toLowerCase();
+    if (sug.off || text.length < SUGGEST_MIN || !/[a-z]/i.test(text)) return closeSuggestions();
+    if (sug.cache.has(key)) { sug.seq++; return showSuggestions(sug.cache.get(key)); }
+    sug.timer = setTimeout(() => fetchSuggestions(text, key), SUGGEST_DELAY_MS);
+  }
+
+  async function fetchSuggestions(text, key) {
+    const seq = ++sug.seq;
+    let items = [];
+    try {
+      const r = await fetch("/api/address-suggest", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
+      if (r.status === 429) sug.off = true; // too many; leave the geocoder be for this visit
+      const out = r.ok ? await r.json() : {};
+      if (Array.isArray(out.suggestions)) {
+        items = out.suggestions.filter((a) => typeof a === "string");
+        sug.cache.set(key, items);
+      }
+    } catch { /* offline or down: no suggestions */ }
+    if (seq === sug.seq && document.activeElement?.id === "addr") showSuggestions(items);
   }
 
   // ── RIDINGS ──
@@ -763,7 +833,7 @@ ${over ? "" : `
         <h3>What each part of the guide means</h3>
         <dl class="deflist">
           <dt>Find your riding</dt>
-          <dd>Your address goes to the B.C. government's Address Geocoder, which returns a point on the map. The guide checks that point against DataBC's official riding boundaries, and flags addresses within 150 metres of a boundary. Elections BC says boundary files shouldn't be the final word on a voter's riding, so confirm with Elections BC's Where to Vote. Your address isn't stored by this site or on your device.</dd>
+          <dd>Your address goes to the B.C. government's Address Geocoder, which suggests matching addresses as you type and returns a point on the map. The guide checks that point against DataBC's official riding boundaries, and flags addresses within 150 metres of a boundary. Elections BC says boundary files shouldn't be the final word on a voter's riding, so confirm with Elections BC's Where to Vote. Your address isn't stored by this site or on your device.</dd>
           <dt>Riding descriptions</dt>
           <dd>The neighbourhoods named for each riding come from checking well-known addresses against the official boundaries (and, for Langley-Walnut Grove, the Langley Advance Times). Use Find your riding for your own address.</dd>
           <dt>Background and priority tags</dt>
@@ -804,7 +874,7 @@ ${over ? "" : `
             <li><strong>No party colours, logos or photos.</strong> Every candidate gets the same initials marker.</li>
             <li><strong>No affiliation.</strong> This site isn't connected to Elections BC, the Government of B.C., any party or candidate.</li>
             <li><strong>Visit counts only.</strong> Vercel Web Analytics counts page visits without cookies. Your vote plan is saved only on your device and never sent anywhere.</li>
-            <li><strong>Find your riding</strong> sends the address you type to the B.C. government's Address Geocoder, through this site's server. Neither stores it.</li>
+            <li><strong>Find your riding</strong> sends the address you type to the B.C. government's Address Geocoder, through this site's server, as you type (for suggestions) and when you search. Neither stores it.</li>
             <li><strong>AI assistant.</strong> "Ask the guide" sends your questions to Anthropic's Claude through Vercel AI Gateway, along with this guide's content. It's told not to recommend candidates or parties. Answers can be wrong; check the sources it links.</li>
           </ul>
           ${G.maintainer ? `<p><strong>Published by:</strong> ${esc(G.maintainer)}. <a href="#feedback">Send feedback or report an error</a>.</p>` : ""}
@@ -997,6 +1067,8 @@ ${over ? "" : `
 
   // ── Events (delegated) ──
   document.addEventListener("click", (e) => {
+    const opt = e.target.closest("[data-suggest]");
+    if (opt) { chooseSuggestion(Number(opt.dataset.suggest)); return; }
     const t = e.target.closest("button, a");
     if (!t) {
       const cardEl = e.target.closest("[data-card]");
@@ -1042,6 +1114,7 @@ ${over ? "" : `
   document.addEventListener("submit", (e) => {
     if (e.target.id !== "finder-form") return;
     e.preventDefault();
+    closeSuggestions();
     const address = $("#addr").value.trim();
     if (address.length < 5) {
       ui.lookup = { status: "not-found" };
@@ -1051,6 +1124,27 @@ ${over ? "" : `
     }
     lookup(address);
   });
+  // The address box is a combobox: arrows move through the suggestions,
+  // Enter picks one (or searches what's typed), Escape closes the list.
+  document.addEventListener("input", (e) => { if (e.target.id === "addr") suggestSoon(e.target.value); });
+  document.addEventListener("keydown", (e) => {
+    if (e.target.id !== "addr") return;
+    const n = sug.items.length;
+    if ((e.key === "ArrowDown" || e.key === "ArrowUp") && n) {
+      e.preventDefault();
+      setActive(e.key === "ArrowDown" ? (sug.active + 1) % n : (sug.active <= 0 ? n : sug.active) - 1);
+    } else if (e.key === "Enter" && sug.active >= 0) {
+      e.preventDefault();
+      chooseSuggestion(sug.active);
+    } else if (e.key === "Escape" && n) {
+      e.preventDefault();
+      closeSuggestions();
+    }
+  });
+  // Keep focus in the box when a suggestion is clicked, so the list stays
+  // open long enough for the click.
+  document.addEventListener("mousedown", (e) => { if (e.target.closest("#addr-list")) e.preventDefault(); });
+  document.addEventListener("focusout", (e) => { if (e.target.id === "addr") closeSuggestions(); });
   window.addEventListener("hashchange", route);
 
   // Switch to the after-the-vote layout when polls close, without a reload.

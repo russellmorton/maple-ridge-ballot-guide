@@ -7,7 +7,8 @@
   ],
   "functions": {
     "api/chat.js": { "includeFiles": "{municipal,provincial}/data.js", "maxDuration": 30 },
-    "api/riding.js": { "maxDuration": 15 }
+    "api/riding.js": { "maxDuration": 15 },
+    "api/address-suggest.js": { "maxDuration": 10 }
   },
   "headers": [
     {
