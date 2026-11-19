@@ -86,3 +86,39 @@ test("provincial: ridings, parties, positions and sources resolve", () => {
   assert.deepEqual([...G.advanceDates].sort(), [...G.advanceDates], "advance dates in order");
   assert.ok(G.advanceDates.every((d) => d < G.electionDay.slice(0, 10)), "advance voting before voting day");
 });
+
+// The archive's official results: every candidate has a total, the declared
+// winners are the top vote-getters, and every source resolves.
+test("municipal: official results match the candidates", () => {
+  const G = load("municipal/data.js");
+  const R = G.results;
+  assert.ok(R, "results");
+  assert.ok(G.sources[R.source] && G.sources[R.turnoutSource], "results sources");
+  for (const c of G.candidates) assert.ok(Number.isInteger(R.votes[c.id]), `${c.id}: votes`);
+  assert.equal(Object.keys(R.votes).length, G.candidates.length, "no votes for unknown candidates");
+  for (const [race, meta] of Object.entries(G.races)) {
+    const top = G.candidates.filter((c) => c.race === race).sort((a, b) => R.votes[b.id] - R.votes[a.id]).slice(0, meta.seats).map((c) => c.id);
+    assert.deepEqual([...R.elected[race]], [...top], `${race}: elected are the top ${meta.seats}`);
+  }
+  for (const q of G.ballotQuestions) {
+    const r = R.questions[q.id];
+    assert.ok(Number.isInteger(r?.yes) && Number.isInteger(r?.no), `${q.id}: yes and no`);
+  }
+});
+
+test("provincial: final results match the candidates", () => {
+  const G = load("provincial/data.js");
+  const parties = new Set(G.parties.map((p) => p.id));
+  assert.ok(G.sources[G.outcome.source], "outcome source");
+  assert.equal(Object.values(G.outcome.seats).reduce((a, b) => a + b, 0), G.context.seats, "seats add up");
+  for (const id of Object.keys(G.outcome.seats)) assert.ok(parties.has(id), `outcome party ${id}`);
+  for (const r of G.ridings) {
+    const res = r.result2026;
+    assert.ok(res && G.sources[res.source], `${r.id}: 2026 result and source`);
+    const here = G.candidates.filter((c) => c.riding === r.id);
+    for (const c of here) assert.ok(Number.isInteger(res.votes[c.id]), `${r.id}: votes for ${c.id}`);
+    assert.equal(Object.keys(res.votes).length, here.length, `${r.id}: no votes for candidates elsewhere`);
+    const top = here.slice().sort((a, b) => res.votes[b.id] - res.votes[a.id])[0];
+    assert.equal(res.elected, top.id, `${r.id}: elected is the top vote-getter`);
+  }
+});

@@ -60,7 +60,6 @@
   <section data-view="compare" id="view-compare" hidden></section>
   <section data-view="ballot" id="view-ballot" hidden></section>
   <section data-view="about" id="view-about" hidden></section>
-  <section data-view="feedback" id="view-feedback" hidden></section>
 </main>
 
 <dialog id="cand-dialog" aria-labelledby="dlg-name"></dialog>
@@ -68,9 +67,9 @@
 
 <footer class="site">
   <div class="wrap">
-    <p><strong>Published by Russell Morton.</strong> Follow updates on X at <a href="https://x.com/russell_morton" target="_blank" rel="noopener">@russell_morton</a>. <a href="#feedback">Send feedback or report an error</a>.</p>
+    <p><strong>Published by Russell Morton.</strong> Follow updates on X at <a href="https://x.com/russell_morton" target="_blank" rel="noopener">@russell_morton</a>.</p>
     <p>The code for this site is public on <a href="https://github.com/russellmorton/maple-ridge-ballot-guide" target="_blank" rel="noopener">GitHub</a>, so anyone can see every change.</p>
-    <p>This guide is for general information only and comes with no guarantee. It may contain errors. Check the City of Maple Ridge's official election information before you vote. <a href="#about">Full disclaimer</a>.</p>
+    <p>This guide is an archive of the 2026 campaign, for general information only, with no guarantee. It may contain errors. The City of Maple Ridge's official results are the authority. <a href="#about">Full disclaimer</a>.</p>
     <p>Independent and non-partisan. Not affiliated with the City of Maple Ridge, School District 42, any candidate or any elector organization.</p>
     <p>Candidate summaries were drafted with AI assistance and link to their sources. <a href="#about">How this guide was made</a>.</p>
     <p>Official election information: <a href="https://www.mapleridge.ca/your-government/municipal-elections" target="_blank" rel="noopener">mapleridge.ca/your-government/municipal-elections</a> · Elections office 604-467-7423 · Election@MapleRidge.ca</p>
@@ -78,39 +77,8 @@
   </div>
 </footer>
 
-<script>
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-</script>
-<script defer src="/_vercel/insights/script.js"></script>
-<button class="chat-launch" id="chat-launch" type="button" aria-expanded="false" aria-controls="chat-panel">
-  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg>
-  Ask the guide
-</button>
-<section class="chat-panel" id="chat-panel" role="dialog" aria-labelledby="chat-title" hidden>
-  <header class="chat-head">
-    <div>
-      <h2 id="chat-title">Ask the guide</h2>
-      <p>AI answers using only this guide's content. It can make mistakes, so check the links it gives.</p>
-    </div>
-    <div class="chat-head-actions">
-      <button class="linkish" type="button" id="chat-reset">New chat</button>
-      <button class="chat-close" type="button" id="chat-close" aria-label="Close chat">
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>
-      </button>
-    </div>
-  </header>
-  <div class="chat-log" id="chat-log" aria-live="polite"></div>
-  <form class="chat-form" id="chat-form">
-    <label class="sr-only" for="chat-input">Your question</label>
-    <textarea id="chat-input" rows="1" maxlength="500" placeholder="Type your question"></textarea>
-    <button class="btn primary" type="submit" id="chat-send">Send</button>
-  </form>
-  <p class="chat-fine">Not official election information. Don't include personal details. Questions are sent to Anthropic's Claude through Vercel. <a href="#about" id="chat-disclaimer">Full disclaimer</a></p>
-</section>
-
 <script src="/theme.js"></script>
 <script src="/municipal/data.js"></script>
 <script src="/municipal/app.js"></script>
-<script src="/chat.js"></script>
 </body>
 </html>

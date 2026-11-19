@@ -19,10 +19,21 @@ window.GUIDE = {
   changes: [
     { date: "2026-10-15", text: "First draft of the provincial guide." },
     { date: "2026-10-15", text: "Fact-check corrections before publishing: Jeff Monds's poster priorities are no longer shown as a direct quote; Holly Isaac's and Daniel Kite's quotes now start where the original sentence does; the Conservatives' PST pledge covers Canadian (not only B.C.) alcohol; the Libertarians' Crown land point uses their word, \"dispersing\"; and the Greens on expanding involuntary treatment changed from No to Partly, since their platform stresses voluntary care and stronger protections but doesn't say it opposes expansion." },
+    { date: "2026-11-19", text: "Archived. Added the final-count results for the five ridings and the province-wide seat count declared on November 9. Removed candidates' email addresses, the Find your riding address lookup, the Ask the guide assistant and the feedback form. The guide is no longer updated." },
   ],
 
   electionDay: "2026-10-24T08:00:00-07:00",
   pollsClose: "2026-10-24T20:00:00-07:00",
+  archived: "2026-11-19",
+
+  // Province-wide outcome, as declared by the Chief Electoral Officer at the
+  // end of the final count (November 9, 2026). Seats by party id.
+  outcome: {
+    declared: "2026-11-09",
+    seats: { con: 64, ndp: 27, green: 2 },
+    turnout: "about 52%, with 1.95 million voters (Elections BC's preliminary estimate)",
+    source: "ebcFinal",
+  },
   advanceDates: ["2026-10-16", "2026-10-17", "2026-10-18", "2026-10-19", "2026-10-20", "2026-10-21"],
 
   // How to vote, from Elections BC's pages.
@@ -51,6 +62,22 @@ window.GUIDE = {
   },
 
   sources: {
+    ebcFinal: {
+      short: "Elections BC, final results",
+      title: "Final Results for the 2026 Provincial General Election Now Available",
+      publisher: "Elections BC",
+      date: "2026-11-09",
+      url: "https://elections.bc.ca/news/final-results-for-the-2026-provincial-general-election-now-available/",
+      usedFor: "Candidates declared elected at the end of the final count, seats by party, turnout and the judicial recount deadline.",
+    },
+    ebcResults2026: {
+      short: "Elections BC, 2026 results",
+      title: "2026 Provincial General Election: results by candidate (final count)",
+      publisher: "Elections BC",
+      date: "2026-11-09",
+      url: "https://results.elections.bc.ca/Results_11684_GE-2026-10-24_Candidate.html",
+      usedFor: "Final-count votes for every candidate in the five ridings this guide covers.",
+    },
     ebcElection: {
       short: "Elections BC, 2026 election",
       title: "2026 Provincial Election: key dates and who can vote",
@@ -142,7 +169,7 @@ window.GUIDE = {
       title: "BC Address Geocoder",
       publisher: "Government of B.C.",
       url: "https://www2.gov.bc.ca/gov/content/data/geographic-data-services/location-services/geocoder",
-      usedFor: "Turning the address you type into a point on the map, for Find your riding.",
+      usedFor: "During the campaign, turning an address into a point on the map for Find your riding. Removed when the guide was archived.",
     },
 
     // Parties
@@ -572,6 +599,7 @@ window.GUIDE = {
       id: "mrpm", name: "Maple Ridge-Pitt Meadows", home: true,
       area: "Pitt Meadows, western Maple Ridge (including the area around Ridge Meadows College and Silver Valley) and the large, mostly undeveloped area to the north.",
       incumbent: "beare",
+      result2026: { elected: "morneau", votes: { morneau: 11780, beare: 10873, simmons: 892, einarsson: 829 }, rejected: 65, source: "ebcResults2026" },
       result2024: { rows: [
         { name: "Lisa Beare", party: "BC NDP", votes: 14480, pct: 54.89 },
         { name: "Mike Morden", party: "Conservative Party", votes: 11901, pct: 45.11 },
@@ -586,6 +614,7 @@ window.GUIDE = {
       id: "mre", name: "Maple Ridge East", home: true,
       area: "Central and eastern Maple Ridge, including downtown, Yennadon, Albion, Whonnock and Ruskin, plus part of Mission around Silverdale.",
       incumbent: "mok",
+      result2026: { elected: "mok", votes: { mok: 12926, campbell: 9082, kite: 1832, hatchwell: 347 }, rejected: 51, source: "ebcResults2026" },
       result2024: { rows: [
         { name: "Bob D'Eith", party: "BC NDP", votes: 11961, pct: 46.64 },
         { name: "Lawrence Mok", party: "Conservative Party", votes: 12058, pct: 47.02 },
@@ -603,6 +632,7 @@ window.GUIDE = {
       incumbent: null,
       note: "No incumbent is running. Conservative MLA Reann Gasper resigned in August 2026 so then-leader Kerry-Lynne Findlay could run in a by-election, which was cancelled when the general election was called.",
       noteSource: ["mcrAM", "vicCall"],
+      result2026: { elected: "kropp", votes: { kropp: 12583, alexis: 7965, jhaj: 780, dass: 569, monds: 319 }, rejected: 50, source: "ebcResults2026" },
       result2024: { rows: [
         { name: "Pam Alexis", party: "BC NDP", votes: 10894, pct: 44.62 },
         { name: "Reann Gasper", party: "Conservative Party", votes: 13523, pct: 55.38 },
@@ -619,6 +649,7 @@ window.GUIDE = {
       area: "Walnut Grove, Fort Langley and northern Willoughby, across the Golden Ears Bridge.",
       areaSource: "latLangley",
       incumbent: "vanpopta",
+      result2026: { elected: "vanpopta", votes: { vanpopta: 13330, isaac: 7447, meyer: 1696, stevenson: 1006 }, rejected: 21, source: "ebcResults2026" },
       result2024: { rows: [
         { name: "Megan Dykeman", party: "BC NDP", votes: 10949, pct: 44.77 },
         { name: "Rylee Mac Lean", party: "BC Green Party", votes: 1254, pct: 5.13 },
@@ -635,6 +666,7 @@ window.GUIDE = {
       id: "poco", name: "Port Coquitlam", home: false,
       area: "Port Coquitlam, across the Pitt River from Pitt Meadows.",
       incumbent: "farnworth",
+      result2026: { elected: "farnworth", votes: { farnworth: 10626, adams: 10201, hendy: 2034, bates: 301, dahlby: 297 }, rejected: 52, source: "ebcResults2026" },
       result2024: { rows: [
         { name: "Keenan Adams", party: "Conservative Party", votes: 9967, pct: 38.79 },
         { name: "Adam Bremner-Akins", party: "BC Green Party", votes: 1644, pct: 6.40 },
@@ -658,7 +690,7 @@ window.GUIDE = {
       backgroundSource: ["mrnBeare", "profile"],
       priorities: ["Standing up to U.S. tariffs", "Jobs and the economy", "Schools", "Health care"],
       profile: { url: "https://lisabeare.bcndp.ca", label: "BC NDP candidate page" },
-      links: { website: "https://lisabeare.bcndp.ca", email: "lisa.beare@bcndp.ca" },
+      links: { website: "https://lisabeare.bcndp.ca" },
       positions: {
         economy: { stance: "priority", text: "Says the provincial government needs to be focused on the economy, keeping and creating jobs, and \"standing strong against Trump.\"", source: "mrnBeare" },
         health: { stance: "priority", text: "Says the NDP has connected more people to a family doctor, with 17 physicians in Maple Ridge now accepting patients.", source: "mrnBeare" },
@@ -671,7 +703,7 @@ window.GUIDE = {
       backgroundSource: "profile",
       priorities: ["Listening to voters", "\"Common sense\" decision-making"],
       profile: { url: "https://1bc.ca/candidates/seinarsson", label: "OneBC candidate page" },
-      links: { email: "susan.einarsson@1bc.ca" },
+      links: {},
       positions: {},
     },
     {
@@ -708,7 +740,7 @@ window.GUIDE = {
       backgroundSource: ["mrnCampbell", "profile"],
       priorities: ["More school seats", "A modern local hospital", "Traffic on Lougheed and Dewdney Trunk"],
       profile: { url: "https://hudsoncampbell.bcndp.ca", label: "BC NDP candidate page" },
-      links: { website: "https://hudsoncampbell.bcndp.ca", email: "hudson.campbell@bcndp.ca" },
+      links: { website: "https://hudsoncampbell.bcndp.ca" },
       positions: {
         health: { stance: "priority", text: "Says Maple Ridge and Mission have smaller hospitals that need upgrading: \"Our community deserves a modern health care facility, and I will definitely work for that.\"", source: "mrnCampbell" },
         education: { stance: "priority", text: "\"We need more seats for our students – we're still a growing district.\"", source: "mrnCampbell" },
@@ -742,7 +774,7 @@ window.GUIDE = {
       backgroundSource: "profile",
       priorities: ["Cracking down on violent crime", "Shorter medical wait times", "Lower taxes and a balanced budget"],
       profile: { url: "https://conservativebc.ca/candidate/lawrence-mok/", label: "Conservative candidate page" },
-      links: { email: "lawrence.mok@conservativebc.ca" },
+      links: {},
       positions: {
         health: { stance: "priority", text: "As MLA in December 2025, called maternity diversions from Ridge Meadows Hospital \"simply unacceptable\" and asked the Ministry of Health for a plan to restore full maternity coverage.", source: "mrnMokMaternity" },
         economy: { stance: "priority", text: "Through his party, says he supports keeping U.S. liquor off store shelves until B.C. gets a fair deal, using the ban as leverage to win tariff relief for forestry workers.", source: "mrnMokTariffs" },
@@ -758,7 +790,7 @@ window.GUIDE = {
       backgroundSource: ["profile", "mcrAM"],
       priorities: ["Shorter commutes", "Health care", "Jobs"],
       profile: { url: "https://pamalexis.bcndp.ca", label: "BC NDP candidate page" },
-      links: { website: "https://pamalexis.bcndp.ca", email: "pam.alexis@bcndp.ca" },
+      links: { website: "https://pamalexis.bcndp.ca" },
       positions: {
         transport: { stance: "priority", text: "Says the four-lane expansion of Highway 7 between Maple Ridge and Mission, completed in August, \"will help people spend less time commuting and more time at home.\"", source: "mcrAM" },
       },
@@ -808,7 +840,7 @@ window.GUIDE = {
       backgroundSource: ["latIsaac", "profile"],
       priorities: ["Good jobs", "Public health care"],
       profile: { url: "https://hollyisaac.bcndp.ca", label: "BC NDP candidate page" },
-      links: { website: "https://hollyisaac.bcndp.ca", email: "holly.isaac@bcndp.ca" },
+      links: { website: "https://hollyisaac.bcndp.ca" },
       positions: {
         economy: { stance: "priority", text: "Says \"workers and families need a government that listens, protects good jobs and strengthens public healthcare, especially as Donald Trump's trade war creates more uncertainty for B.C.\"", source: "latIsaac" },
         health: { stance: "priority", text: "Wants a government that \"strengthens public healthcare\".", source: "latIsaac" },
@@ -845,7 +877,7 @@ window.GUIDE = {
       backgroundSource: "profile",
       priorities: ["Overcrowded schools", "Health care investment", "Transit and transportation"],
       profile: { url: "https://conservativebc.ca/candidate/misty-van-popta/", label: "Conservative candidate page" },
-      links: { email: "misty.vanpopta@conservativebc.ca" },
+      links: {},
       positions: {
         education: { stance: "priority", text: "Her party profile names overcrowding in schools among the issues that led her to run in 2024.", source: "profile" },
         health: { stance: "priority", text: "Her party profile names \"a lack of investment in health care\" among the issues that led her to run.", source: "profile" },
@@ -888,7 +920,7 @@ window.GUIDE = {
       backgroundSource: "profile",
       priorities: ["Public health care and education", "Transportation", "Justice reform"],
       profile: { url: "https://mikefarnworth.bcndp.ca", label: "BC NDP candidate page" },
-      links: { website: "https://mikefarnworth.bcndp.ca", email: "mike.farnworth@bcndp.ca" },
+      links: { website: "https://mikefarnworth.bcndp.ca" },
       positions: {},
     },
     {

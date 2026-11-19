@@ -54,16 +54,7 @@
 .countdown .cd-text span.adv { color: var(--ochre); font-weight: 700; }
 
 /* ── Find your riding ── */
-.finder { gap: 0.9rem; border-top: 4px solid var(--brand); }
-.finder form { display: flex; flex-wrap: wrap; gap: 0.6rem; }
-.finder input[type="text"] { flex: 1 1 260px; min-width: 0; padding: 0.65rem 0.8rem; border-radius: var(--r); border: 1px solid var(--line); background: var(--sheet); color: var(--ink); font: inherit; }
-.finder .btn.primary:disabled { opacity: 0.6; cursor: wait; }
-.finder .fine { font-size: 0.82rem; color: var(--muted); }
-.result { display: flex; flex-direction: column; gap: 0.6rem; padding: 0.9rem 1rem; border-radius: var(--r); background: var(--brand-soft); }
-.result h3 { font-size: 1.3rem; }
-.result.warn { background: var(--ochre-soft); }
-.result .who-list { display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; margin: 0; padding: 0; list-style: none; font-size: 0.95rem; }
-.result .actions, .riding .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.riding .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .pick-riding { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
 .pick-riding button { font: 600 0.86rem var(--body); padding: 0.35rem 0.75rem; border-radius: 999px; border: 1px solid var(--line); background: var(--sheet); color: var(--ink); cursor: pointer; }
 .pick-riding button:hover { border-color: var(--brand); }
@@ -86,16 +77,7 @@
 .group-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem 1rem; }
 .group-head h3 { font-size: 1.15rem; color: var(--muted); font-stretch: 100%; font-family: var(--body); font-weight: 700; }
 
-/* 2024 results: one series, so one hue; the winner's bar is full strength. */
-.results { display: flex; flex-direction: column; gap: 0.45rem; margin: 0; padding: 0; list-style: none; }
-.results li { display: grid; grid-template-columns: minmax(0, 1fr) 3.4rem; gap: 0.15rem 0.6rem; align-items: center; font-size: 0.9rem; }
-.results .lbl { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 0.5rem; }
-.results .lbl small { color: var(--muted); white-space: nowrap; }
-.results .track { height: 12px; border-radius: 0 4px 4px 0; background: transparent; position: relative; }
-.results .fill { display: block; height: 100%; border-radius: 0 4px 4px 0; background: var(--bar-dim); min-width: 2px; }
-.results li.won .fill { background: var(--bar); }
-.results .pct { font: 500 0.85rem var(--mono); text-align: right; }
-.margin-note { font-size: 0.88rem; color: var(--muted); }
+/* Results bars (rules in guide.css): one series, so one hue; the winner's bar is full strength. */
 .where-details { border-top: 1px dashed var(--line); padding-top: 0.7rem; }
 .where-details summary { cursor: pointer; font-weight: 700; color: var(--brand); }
 .qgrid .cell { min-width: 5.5rem; }
@@ -189,7 +171,6 @@
   <section data-view="compare" id="view-compare" hidden></section>
   <section data-view="plan" id="view-plan" hidden></section>
   <section data-view="about" id="view-about" hidden></section>
-  <section data-view="feedback" id="view-feedback" hidden></section>
 </main>
 
 <dialog id="cand-dialog" aria-labelledby="dlg-name"></dialog>
@@ -197,9 +178,9 @@
 
 <footer class="site">
   <div class="wrap">
-    <p><strong>Published by Russell Morton.</strong> Follow updates on X at <a href="https://x.com/russell_morton" target="_blank" rel="noopener">@russell_morton</a>. <a href="#feedback">Send feedback or report an error</a>.</p>
+    <p><strong>Published by Russell Morton.</strong> Follow updates on X at <a href="https://x.com/russell_morton" target="_blank" rel="noopener">@russell_morton</a>.</p>
     <p>The code for this site is public on <a href="https://github.com/russellmorton/maple-ridge-ballot-guide" target="_blank" rel="noopener">GitHub</a>, so anyone can see every change.</p>
-    <p>This guide is for general information only and comes with no guarantee. It may contain errors. Check Elections BC's official information before you vote. <a href="#about">Full disclaimer</a>.</p>
+    <p>This guide is an archive of the 2026 campaign, for general information only, with no guarantee. It may contain errors. Elections BC's official results are the authority. <a href="#about">Full disclaimer</a>.</p>
     <p>Independent and non-partisan. Not affiliated with Elections BC, the Government of B.C., any party or any candidate.</p>
     <p>Candidate and platform summaries were drafted with AI assistance and link to their sources. <a href="#about">How this guide was made</a>.</p>
     <p id="official"></p>
@@ -207,40 +188,9 @@
   </div>
 </footer>
 
-<script>
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-</script>
-<script defer src="/_vercel/insights/script.js"></script>
-<button class="chat-launch" id="chat-launch" type="button" aria-expanded="false" aria-controls="chat-panel">
-  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg>
-  Ask the guide
-</button>
-<section class="chat-panel" id="chat-panel" role="dialog" aria-labelledby="chat-title" hidden>
-  <header class="chat-head">
-    <div>
-      <h2 id="chat-title">Ask the guide</h2>
-      <p>AI answers using only this guide's provincial content. It can make mistakes, so check the links it gives.</p>
-    </div>
-    <div class="chat-head-actions">
-      <button class="linkish" type="button" id="chat-reset">New chat</button>
-      <button class="chat-close" type="button" id="chat-close" aria-label="Close chat">
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>
-      </button>
-    </div>
-  </header>
-  <div class="chat-log" id="chat-log" aria-live="polite"></div>
-  <form class="chat-form" id="chat-form">
-    <label class="sr-only" for="chat-input">Your question</label>
-    <textarea id="chat-input" rows="1" maxlength="500" placeholder="Type your question"></textarea>
-    <button class="btn primary" type="submit" id="chat-send">Send</button>
-  </form>
-  <p class="chat-fine">Not official election information. Don't include personal details, including your address. Questions are sent to Anthropic's Claude through Vercel. <a href="#about" id="chat-disclaimer">Full disclaimer</a></p>
-</section>
-
 <script src="/theme.js"></script>
 <script src="/provincial/data.js"></script>
 <script src="/provincial/map.js"></script>
 <script src="/provincial/app.js"></script>
-<script src="/chat.js"></script>
 </body>
 </html>
