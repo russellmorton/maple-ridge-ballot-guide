@@ -77,15 +77,6 @@
 .quick .q-kind { font: 750 clamp(1rem, 3.6vw, 1.15rem)/1.15 var(--display); font-stretch: 90%; }
 .quick .q-when { font: 600 0.8rem/1.3 var(--body); opacity: 0.9; }
 .quick.closed { --accent: var(--sheet); --on-accent: var(--muted); border: 1px solid var(--line); box-shadow: none; }
-.diff th:first-child, .diff td:first-child { width: 9rem; font-weight: 600; color: var(--ink); }
-.diff td { min-width: 12rem; }
-@media (max-width: 640px) {
-  .diff thead { display: none; }
-  .diff, .diff tbody, .diff tr, .diff td { display: block; width: 100%; min-width: 0; }
-  .diff tr { border-bottom: 2px solid var(--line); padding-block: 0.4rem; }
-  .diff td { border: 0; padding: 0.3rem 0.2rem; width: 100% !important; }
-  .diff td[data-label]::before { content: attr(data-label); display: block; font: 600 0.8rem var(--body); color: var(--muted); }
-}
 </style>
 </head>
 <body data-guide="home">
@@ -112,7 +103,7 @@
 
 <main class="wrap landing">
   <div class="stack">
-    <p class="lede">Two elections, <em>one week apart</em>.</p>
+    <p class="lede">Two elections, <em>one week apart</em>, in October 2026.</p>
     <nav class="quick-go" id="quick-go" aria-label="Go straight to a guide">
       <a class="quick" href="/municipal" data-guide="municipal">
         <span class="q-kind">Municipal guide <span aria-hidden="true">→</span></span>
@@ -123,7 +114,11 @@
         <span class="q-when" data-when>Saturday, Oct 24</span>
       </a>
     </nav>
-    <p class="prose muted">Maple Ridge votes for mayor, council and school trustees on Saturday, October 17, then for its MLAs in the B.C. provincial election on Saturday, October 24. They're separate elections with separate ballots, run by different offices. Voting in one doesn't count for the other.</p>
+    <p class="prose muted">Maple Ridge voted for mayor, council and school trustees on Saturday, October 17, then for its MLAs in the B.C. provincial election on Saturday, October 24. They were separate elections with separate ballots, run by different offices.</p>
+    <div class="notice">
+      <h2 style="font-size:1.15rem">An archive of the 2026 campaigns</h2>
+      <p>Both elections are over. Each guide now shows the official results alongside what the candidates said during the campaign. The guides were archived on November 19, 2026 and are no longer updated.</p>
+    </div>
   </div>
 
   <div class="elections" id="elections">
@@ -138,7 +133,8 @@
         <ul>
           <li>Mayor, six councillors and five SD42 school trustees</li>
           <li>Three recreation borrowing questions, $393 million in all</li>
-          <li>Where every candidate stands, with sources</li>
+          <li>Where every candidate stood, with sources</li>
+          <li>Who was elected, and how the three questions went</li>
         </ul>
         <p class="who">Run by the City of Maple Ridge.</p>
         <span class="go">Open the municipal guide</span>
@@ -154,9 +150,9 @@
       </div>
       <div class="el-body">
         <ul>
-          <li>Find your riding from your address</li>
           <li>Every candidate in Maple Ridge's two ridings and the three next door</li>
-          <li>What each party is promising, issue by issue</li>
+          <li>What each party promised, issue by issue</li>
+          <li>Who won each riding, with the final count</li>
         </ul>
         <p class="who">Run by Elections BC.</p>
         <span class="go">Open the provincial guide</span>
@@ -164,31 +160,17 @@
     </a>
   </div>
 
-  <section class="panel" aria-labelledby="diff-title">
-    <span class="eyebrow">Don't mix them up</span>
-    <h2 id="diff-title" style="font-size:1.5rem">What's different between the two elections</h2>
-    <div class="scroll-x"><table class="diff">
-      <thead><tr><th></th><th>Municipal, October 17</th><th>Provincial, October 24</th></tr></thead>
-      <tbody id="diff-rows"></tbody>
-    </table></div>
-    <p class="note" style="max-width:66ch"><strong>Saturday, October 17 is both</strong> municipal voting day and a provincial advance voting day. They use different voting places and separate ballots, so voting in one doesn't count for the other.</p>
-    <p class="muted" style="font-size:.88rem">Each guide has the full details and links to the official sources.</p>
-  </section>
 </main>
 
 <footer class="site">
   <div class="wrap">
     <p><strong>Published by Russell Morton.</strong> Follow updates on X at <a href="https://x.com/russell_morton" target="_blank" rel="noopener">@russell_morton</a>.</p>
     <p>The code for this site is public on <a href="https://github.com/russellmorton/maple-ridge-ballot-guide" target="_blank" rel="noopener">GitHub</a>, so anyone can see every change.</p>
-    <p>These guides are for general information only and come with no guarantee. They may contain errors. Check the official election information before you vote: the <a href="https://www.mapleridge.ca/your-government/municipal-elections" target="_blank" rel="noopener">City of Maple Ridge</a> for October 17, and <a href="https://elections.bc.ca/" target="_blank" rel="noopener">Elections BC</a> for October 24.</p>
+    <p>These guides are an archive, for general information only, with no guarantee. They may contain errors. The official results are the authority: the <a href="https://www.mapleridge.ca/your-government/municipal-elections/election-results-2026" target="_blank" rel="noopener">City of Maple Ridge</a> for October 17, and <a href="https://elections.bc.ca/news/final-results-for-the-2026-provincial-general-election-now-available/" target="_blank" rel="noopener">Elections BC</a> for October 24.</p>
     <p>Independent and non-partisan. Not affiliated with the City of Maple Ridge, School District 42, Elections BC, the Government of B.C., any party, candidate or elector organization.</p>
   </div>
 </footer>
 
-<script>
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-</script>
-<script defer src="/_vercel/insights/script.js"></script>
 <script src="/theme.js"></script>
 <script src="/landing.js"></script>
 </body>

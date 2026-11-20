@@ -11,6 +11,19 @@
   const SHORT = { mayor: "Mayor", council: "Council", trustee: "Trustee" };
   const CITY = ["mayor", "council"];
 
+  // ── Official results (the archive) ──
+  const RES = G.results || null;
+  const num = (n) => n.toLocaleString("en-CA");
+  const votesOf = (c) => RES?.votes?.[c.id];
+  const isElected = (c) => !!RES?.elected?.[c.race]?.includes(c.id);
+  const longDate = (iso) => new Date(iso + "T12:00:00Z").toLocaleDateString("en-CA", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
+  const qResult = (id) => {
+    const r = RES?.questions?.[id];
+    if (!r) return null;
+    const total = r.yes + r.no;
+    return { ...r, passed: r.yes > r.no, yesPct: (100 * r.yes) / total, noPct: (100 * r.no) / total };
+  };
+
   const STANCE = {
     supports: { label: "For" },
     opposes: { label: "Against" },
@@ -45,7 +58,7 @@
     if (Array.isArray(key)) return `<span class="src-group">${key.map((k) => srcLink(k, c)).join("")}</span>`;
     const s = G.sources[key];
     if (!s) return "";
-    const label = key === "cityBio" ? "Candidate's City profile" : key === "candidate" ? "Sent to us by the candidate" : `${s.publisher}${s.date ? ", " + new Date(s.date + "T12:00:00Z").toLocaleDateString("en-CA", { month: "short", day: "numeric", timeZone: "UTC" }) : ""}`;
+    const label = key === "cityBio" ? "Candidate's City profile" : key === "candidate" ? "Sent to us by the candidate" : s.short || `${s.publisher}${s.date ? ", " + new Date(s.date + "T12:00:00Z").toLocaleDateString("en-CA", { month: "short", day: "numeric", timeZone: "UTC" }) : ""}`;
     if (!s.url) return `<span class="src">Source: ${esc(label)}</span>`;
     return `<a class="src" href="${esc(srcUrl(key, c))}" target="_blank" rel="noopener">Source: ${esc(label)}</a>`;
   };
@@ -112,12 +125,13 @@
           : "On Saturday, October 17, Maple Ridge elects a <em>mayor</em>, <em>six councillors</em> and <em>five school trustees</em>, and votes on borrowing <em>$393 million</em> for recreation."}</p>
         <p class="prose muted">This guide covers every name on the City's official candidate list, explains each ballot question in plain language, and lets you compare candidates on what they've said in public. Every statement links to where it came from.</p>
       </div>
+      ${over && RES ? resultsPanel() : ""}
 
       <div class="ballot-paper">
         <header><span class="eyebrow">${over ? "What was on the ballot" : "What's on your ballot"}</span><span class="eyebrow">4 parts</span></header>
-        ${row("#candidates", "mayor", "Mayor", `${counts.mayor} running, vote for 1`, G.races.mayor.what)}
-        ${row("#candidates", "council", "Councillor", `${counts.council} running, vote for up to 6`, G.races.council.what)}
-        ${row("#candidates", "trustee", "School Trustee, SD42", `${counts.trustee} running, vote for up to 5`, G.races.trustee.what)}
+        ${row("#candidates", "mayor", "Mayor", (RES ? `${counts.mayor} ran, 1 elected` : `${counts.mayor} running, vote for 1`), G.races.mayor.what)}
+        ${row("#candidates", "council", "Councillor", (RES ? `${counts.council} ran, 6 elected` : `${counts.council} running, vote for up to 6`), G.races.council.what)}
+        ${row("#candidates", "trustee", "School Trustee, SD42", (RES ? `${counts.trustee} ran, 5 elected` : `${counts.trustee} running, vote for up to 5`), G.races.trustee.what)}
         ${row("#questions", null, "Three recreation borrowing questions", "Yes or No on each", "An aquatic centre in Hammond, a park on the Golf Lane golf course site, and two new rinks at Albion. Each is a separate question.")}
       </div>
       ${over ? "" : `<p class="muted" style="margin-top:-1rem;font-size:.9rem">You can vote for fewer candidates than there are seats. You don't have to answer every question.</p>`}
@@ -147,6 +161,49 @@ ${over ? "" : `
         <p>The City lists these eight places. Check the City's <a href="https://www.mapleridge.ca/media/file/election-voting-place-map-2026" target="_blank" rel="noopener">voting place map</a> or call the elections office at 604-467-7423 if you're not sure where to go.</p>
         <ul class="places">${G.pollingPlaces.map(([n, a]) => `<li>${esc(n)}<small>${esc(a)}</small></li>`).join("")}</ul>
       </div>`}`;
+  }
+
+  // The official results: who was elected, then every vote total.
+  function resultsPanel() {
+    const PLURAL = { mayor: "Mayor", council: "Council", trustee: "School trustees" };
+    const names = (ids) => ids.map((id) => `<button class="linkish" type="button" data-open="${id}">${esc(byId[id].name)}</button>`).join(", ");
+    const qs = G.ballotQuestions.map((q) => ({ q, r: qResult(q.id) })).filter((x) => x.r);
+    const raceList = (race) => {
+      const list = inRace(race).filter((c) => votesOf(c) != null).sort((a, b) => votesOf(b) - votesOf(a));
+      const top = votesOf(list[0]) || 1;
+      const total = list.reduce((n, c) => n + votesOf(c), 0);
+      return `
+        <div class="stack" style="gap:.5rem">
+          <span class="eyebrow">${PLURAL[race]}, ${G.races[race].seats} elected</span>
+          <ol class="results ${race === "mayor" ? "" : "votes-only"}" aria-label="${esc(G.races[race].label)} results">
+            ${list.map((c) => `
+              <li class="${isElected(c) ? "won" : ""}">
+                <span class="lbl"><span><button class="linkish" type="button" data-open="${c.id}">${esc(c.name)}</button>${isElected(c) ? " <strong>elected</strong>" : ""}</span></span>
+                <span class="track"><span class="fill" style="width:${((100 * votesOf(c)) / top).toFixed(1)}%"></span></span>
+                <span class="pct">${race === "mayor" ? `${((100 * votesOf(c)) / total).toFixed(1)}%` : num(votesOf(c))}</span>
+              </li>`).join("")}
+          </ol>
+          ${race === "mayor" ? `<p class="margin-note">${list.map((c) => `${esc(c.name)} ${num(votesOf(c))}`).join(" · ")} votes.</p>` : ""}
+        </div>`;
+    };
+    return `
+      <div class="panel" id="results">
+        <span class="eyebrow">Official results · declared ${esc(longDate(RES.declared))}</span>
+        <h3>Who was elected</h3>
+        <dl class="elected">
+          ${RACES.map((r) => `<dt>${PLURAL[r]}</dt><dd>${names(RES.elected[r])}</dd>`).join("")}
+          ${qs.length ? `<dt>Borrowing questions</dt><dd>${qs.every((x) => !x.r.passed) ? "All three did not pass." : qs.map((x) => `${esc(x.q.name.split(" (")[0])}: ${x.r.passed ? "passed" : "did not pass"}`).join("; ")} <a href="#questions">See the votes</a>.</dd>` : ""}
+        </dl>
+        ${RES.ballots ? `<p class="muted" style="font-size:.92rem">${num(RES.ballots)} ballots were cast, a turnout of about ${Math.round(RES.turnoutPct)}% of eligible voters.</p>` : ""}
+        <details class="all-results">
+          <summary>Every candidate's vote total</summary>
+          <div class="stack" style="gap:1.5rem">
+            ${RACES.map(raceList).join("")}
+            <p class="muted" style="font-size:.85rem">For council and school trustee, each voter could mark up to ${G.races.council.seats} and ${G.races.trustee.seats} names, so the numbers are votes, not voters.</p>
+          </div>
+        </details>
+        <span class="src-group">${srcLink("cityResults")}${srcLink("cityResultsNews")}</span>
+      </div>`;
   }
 
   // ── BALLOT QUESTIONS ──
@@ -187,7 +244,11 @@ ${over ? "" : `
               <dt>Bylaw</dt><dd class="mono" style="font-size:.88rem">${esc(q.bylaw)}</dd>
             </dl>
             <p class="wording">${esc(q.wording)}</p>
-            ${srcLink("cityElections")}
+            ${(() => {
+              const r = qResult(q.id);
+              return r ? `<p class="result-line"><strong>${r.passed ? "Passed" : "Did not pass"}.</strong> Yes ${num(r.yes)} (${r.yesPct.toFixed(1)}%) · No ${num(r.no)} (${r.noPct.toFixed(1)}%)</p>` : "";
+            })()}
+            <span class="src-group">${srcLink("cityElections")}${qResult(q.id) ? srcLink("cityResults") : ""}</span>
           </div>
         </article>`).join("")}
 
@@ -225,7 +286,7 @@ ${over ? "" : `
 
   // ── CANDIDATES ──
   const affiliation = (c) => (c.race === "trustee" ? "" : c.slate ? `<span class="badge">${esc(c.slate)}</span>` : `<span class="badge">Independent</span>`);
-  const badges = (c) => `${c.incumbent ? `<span class="badge inc">Incumbent</span>` : ""}${affiliation(c)}`;
+  const badges = (c) => `${isElected(c) ? `<span class="badge won">Elected</span>` : ""}${c.incumbent ? `<span class="badge inc">Incumbent</span>` : ""}${affiliation(c)}`;
 
   function card(c) {
     return `
@@ -241,7 +302,7 @@ ${over ? "" : `
         ${c.priorities.length ? `<div class="chips">${c.priorities.slice(0, 3).map((p) => `<span class="chip">${esc(p)}</span>`).join("")}</div>` : ""}
         ${c.note ? `<p class="note">${esc(c.note)}</p>` : ""}
         <div class="card-foot">
-          <button class="linkish" type="button" data-open="${c.id}">Positions &amp; contact</button>
+          <button class="linkish" type="button" data-open="${c.id}">Positions &amp; details</button>
           ${ovalBtn(c)}
         </div>
       </article>`;
@@ -265,7 +326,7 @@ ${over ? "" : `
       const meta = G.races[r];
       return `
         <div class="race-group">
-          <header><h3 style="font-size:1.4rem">${meta.label}</h3><span class="eyebrow">${inRace(r).length} running, vote for ${meta.seats === 1 ? "1" : "up to " + meta.seats}</span></header>
+          <header><h3 style="font-size:1.4rem">${meta.label}</h3><span class="eyebrow">${RES ? `${inRace(r).length} ran, ${meta.seats} elected` : `${inRace(r).length} running, vote for ${meta.seats === 1 ? "1" : "up to " + meta.seats}`}</span></header>
           <div class="cards">${list.map(card).join("")}</div>
         </div>`;
     }).join("");
@@ -309,12 +370,8 @@ ${over ? "" : `
         }).join("")
       : G.topics.filter((t) => c.topics?.[t.id]).map((t) => `<div class="pos"><span class="lbl">${esc(t.label)}</span><div class="txt"><span>${esc(c.topics[t.id])}</span>${srcLink(c.topicSource || "cityBio", c)}</div></div>`).join("")
         || `<p class="muted">This candidate's profile doesn't address specific topics. Check their website or contact them directly.</p>`;
-    const L = c.links || {};
-    const contact = [
-      L.website && ["Website", `<a href="${esc(L.website)}" target="_blank" rel="noopener">${esc(L.website.replace(/^https?:\/\//, "").replace(/\/$/, ""))}</a>`, true],
-      L.email && ["Email", esc(L.email)],
-      L.phone && ["Phone", esc(L.phone)],
-    ].filter(Boolean);
+    const site = c.links?.website;
+    const v = votesOf(c);
     dialog.innerHTML = `
       <div class="dlg" tabindex="-1">
         <div class="dlg-head">
@@ -325,6 +382,7 @@ ${over ? "" : `
           </div>
           <button class="btn" type="button" data-close>Close</button>
         </div>
+        ${v != null ? `<p class="result-line">${isElected(c) ? "<strong>Elected</strong> with" : "Not elected:"} ${num(v)} votes. ${srcLink("cityResults")}</p>` : ""}
         <p>${esc(c.background)}</p>
         ${c.note ? `<p class="note">${esc(c.note)}</p>` : ""}
         ${c.priorities.length ? `<div class="stack" style="gap:.5rem"><span class="eyebrow">Priority tags</span><div class="chips">${c.priorities.map((p, i) => `<span class="chip">${esc(p)}${c.tagSources?.[i] ? ` <span class="chip-src">· ${esc(G.sources[c.tagSources[i]].publisher)}</span>` : ""}</span>`).join("")}</div><p class="src">Short labels written by this guide. Unmarked tags come from the candidate's City profile.</p></div>` : ""}
@@ -333,10 +391,9 @@ ${over ? "" : `
           <div class="pos-list">${positions}</div>
         </div>
         <div class="stack" style="gap:.5rem">
-          <span class="eyebrow">Contact</span>
-          ${contact.length ? `<dl class="contact">${contact.map(([k, v, isUrl]) => `<dt>${k}</dt><dd class="${isUrl ? "url" : ""}">${v}</dd>`).join("")}</dl>` : `<p class="muted">No contact details published.</p>`}
-          ${c.profile ? `<a href="${esc(srcUrl("cityBio", c))}" target="_blank" rel="noopener">Read their full City profile</a>` : ""}
-          <a href="#feedback" data-feedback="${c.id}" data-close>Report an error about ${esc(c.name)}</a>
+          <span class="eyebrow">Website</span>
+          ${site ? `<a href="${esc(site)}" target="_blank" rel="noopener">${esc(site.replace(/^https?:\/\//, "").replace(/\/$/, ""))}</a>` : `<p class="muted">No website listed.</p>`}
+          ${c.profile ? `<a href="${esc(srcUrl("cityBio", c))}" target="_blank" rel="noopener">Read their City profile</a>` : ""}
         </div>
         <p class="src">Background, tags and position summaries were written by this guide with AI assistance, not by the candidate. <a href="#about" data-close>How this was made</a>.</p>
         <div class="card-foot">${ovalBtn(c)}<button class="btn" type="button" data-close>Close</button></div>
@@ -360,7 +417,7 @@ ${over ? "" : `
     const head = `<tr><th class="cand">Candidate</th>${cols.map((col) => `<th title="${esc(col.question || col.label)}">${esc(col.short || col.label)}</th>`).join("")}</tr>`;
     const rows = cands.map((c) => `
       <tr class="${showPicked(c) ? "picked" : ""}">
-        <td class="cand"><button class="linkish" type="button" data-open="${c.id}">${esc(c.name)}</button>${c.incumbent ? ` <span class="badge inc">Inc.</span>` : ""}</td>
+        <td class="cand"><button class="linkish" type="button" data-open="${c.id}">${esc(c.name)}</button>${isElected(c) ? ` <span class="badge won">Elected</span>` : ""}${c.incumbent ? ` <span class="badge inc">Inc.</span>` : ""}</td>
         ${cols.map((col) => {
           const selected = ui.cell && ui.cell.c === c.id && ui.cell.k === col.id;
           if (isCity) {
@@ -532,6 +589,7 @@ ${over ? "" : `
       <div class="section-head">
         <h2>How this guide was made</h2>
         <p class="prose">This page explains where every piece of candidate information came from, who and what produced the summaries, how each label was chosen, and what we haven't checked. If anything here conflicts with an official City page, the City page is correct.</p>
+        ${G.archived ? `<p class="prose"><strong>Archived on ${esc(longDate(G.archived))}.</strong> The guide is no longer updated. Candidate information is as it was during the campaign; the official results were added when it was archived.</p>` : ""}
       </div>
 
       <div class="status-banner" role="status">
@@ -576,8 +634,10 @@ ${over ? "" : `
           </dd>
           <dt>Trustee topics</dt>
           <dd>Trustee races rarely have yes-or-no issues, so the trustee comparison only shows whether a topic is <em>mentioned</em> in the candidate's City profile. A blank means it wasn't mentioned, not that they oppose it. Pascale Shaw's topics come from Maple Ridge News, the rest from City profiles.</dd>
-          <dt>Contact details</dt>
-          <dd>Copied from the City's candidate profile pages. Websites are as listed by the candidate.</dd>
+          <dt>Websites</dt>
+          <dd>As listed on the City's candidate profile pages. The phone numbers and email addresses shown during the campaign were removed when the guide was archived.</dd>
+          <dt>Results</dt>
+          <dd>The official results declared by the City's Chief Election Officer on ${RES ? esc(longDate(RES.declared)) : "October 21, 2026"}, copied from the City's results page.</dd>
         </dl>
       </div>
 
@@ -601,18 +661,18 @@ ${over ? "" : `
             <li><strong>No endorsements, rankings or scores.</strong> Candidates are listed alphabetically by surname in every race.</li>
             <li><strong>No photos.</strong> Every candidate gets the same initials marker.</li>
             <li><strong>No affiliation.</strong> This site isn't connected to the City of Maple Ridge, School District 42, any candidate or any elector organization. It uses colours from the City's website palette, but it is not a City website and doesn't use the City's logo.</li>
-            <li><strong>Visit counts only.</strong> We use Vercel Web Analytics to count page visits. It doesn't use cookies and doesn't identify you. It records the page, referring site, country, browser and device type. There's no advertising. Your "My ballot" choices are saved only on the device you're using. They're never sent to us, to analytics or anywhere else. Fonts are loaded from Google Fonts, which receives your IP address the way any website request does.</li>
-            <li><strong>AI assistant.</strong> "Ask the guide" sends your questions to Anthropic's Claude (Sonnet 5.5) through Vercel AI Gateway, along with this guide's content, so it can answer from the guide. It's told not to recommend candidates or say how to vote. Answers can be wrong; check the sources it links. The conversation isn't saved on this site and disappears when you close the page.</li>
-            <li><strong>Feedback.</strong> Messages sent through the feedback form go only to the publisher. They're stored privately in the site's Vercel account and emailed to him. Your name and email are optional.</li>
+            <li><strong>No tracking.</strong> During the campaign, Vercel Web Analytics counted page visits without cookies. It was removed when the guide was archived. "My ballot" choices were only ever saved on your own device. Fonts are loaded from Google Fonts, which receives your IP address the way any website request does.</li>
+            <li><strong>No AI assistant.</strong> During the campaign, "Ask the guide" answered questions from this guide's content using Anthropic's Claude (Sonnet 5.5) through Vercel AI Gateway. It was switched off when the guide was archived.</li>
+            <li><strong>No feedback form.</strong> During the campaign, a form sent corrections privately to the publisher. It was closed when the guide was archived.</li>
           </ul>
-          ${G.maintainer ? `<p><strong>Published by:</strong> ${esc(G.maintainer)}. <a href="#feedback">Send feedback or report an error</a>.</p>` : ""}
+          ${G.maintainer ? `<p><strong>Published by:</strong> ${esc(G.maintainer)}. Follow updates on X at <a href="https://x.com/russell_morton" target="_blank" rel="noopener">@russell_morton</a>.</p>` : ""}
         </div>
       </div>
 
       <div class="panel prose method" id="disclaimer">
         <h3>Disclaimer</h3>
-        <p>This guide is an independent project provided for general information only. We've worked to make it accurate and fair, and every candidate summary links to its source, but it may contain errors or be out of date. It is provided "as is", without warranties of any kind, and Russell Morton is not liable for any loss or damage arising from its use or from reliance on it. It is not an official election publication and is not legal advice. Links to other websites are provided for convenience; we aren't responsible for their content. Answers from the "Ask the guide" assistant are generated by AI and may be inaccurate or incomplete.</p>
-        <p><strong>Candidates:</strong> if anything about you is wrong or missing, tell us through the <a href="#feedback">feedback form</a> and we'll check it and correct it promptly.</p>
+        <p>This guide is an independent project provided for general information only. We've worked to make it accurate and fair, and every candidate summary links to its source, but it may contain errors or be out of date. It is provided "as is", without warranties of any kind, and Russell Morton is not liable for any loss or damage arising from its use or from reliance on it. It is not an official election publication and is not legal advice. Links to other websites are provided for convenience; we aren't responsible for their content, and some may no longer work.</p>
+        <p>This guide is an archive of the 2026 campaign and is no longer updated or corrected.</p>
       </div>
 
       <div class="panel method">
@@ -621,7 +681,7 @@ ${over ? "" : `
           <thead><tr><th>Source</th><th>Used for</th></tr></thead>
           <tbody>${Object.values(G.sources).map((s) => `<tr><td style="min-width:14rem">${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>` : esc(s.title)}<br><span class="muted" style="font-size:.85rem">${esc(s.publisher)}${s.date ? ", " + esc(s.date) : ""}</span></td><td style="min-width:16rem">${esc(s.usedFor || "")}</td></tr>`).join("")}</tbody>
         </table></div>
-        <p class="muted" style="font-size:.88rem">All sources were accessed on ${esc(G.lastChecked)}. Each candidate's individual City profile is linked from their detail view.</p>
+        <p class="muted" style="font-size:.88rem">Campaign sources were accessed on ${esc(G.lastChecked)}${G.archived ? `, and the results sources on ${esc(G.archived)}` : ""}. Each candidate's individual City profile is linked from their detail view.</p>
       </div>
 
       <div class="panel method">
@@ -630,105 +690,6 @@ ${over ? "" : `
       </div>`;
   }
 
-  // ── FEEDBACK ──
-  const fbState = { candidate: "", topic: "" };
-  function renderFeedback() {
-    const view = $("#view-feedback");
-    view.innerHTML = `
-      <div class="section-head">
-        <h2>Send feedback</h2>
-        <p class="prose">Spotted a mistake, or something missing? Tell us and we'll check it against the sources and fix it. Corrections are listed on the <a href="#about">About page</a>.</p>
-      </div>
-      <form class="fb-form" id="fb-form" novalidate>
-        <div class="field">
-          <label for="fb-topic">What's this about?</label>
-          <select id="fb-topic" name="topic">
-            <option value="candidate">A candidate's information</option>
-            <option value="ballot">Ballot questions or voting information</option>
-            <option value="site">Something on the site isn't working</option>
-            <option value="other">Other feedback</option>
-          </select>
-        </div>
-        <div class="field" id="fb-cand-field">
-          <label for="fb-candidate">Which candidate?</label>
-          <select id="fb-candidate" name="candidate">
-            <option value="">Choose a candidate</option>
-            ${RACES.map((r) => `<optgroup label="${esc(G.races[r].label)}">${inRace(r).map((c) => `<option value="${esc(c.name)}">${esc(c.name)}</option>`).join("")}</optgroup>`).join("")}
-          </select>
-        </div>
-        <div class="field">
-          <label for="fb-message">Your message</label>
-          <span class="hint" id="fb-message-hint">If something is wrong, say what it should be and where you saw the correct information.</span>
-          <textarea id="fb-message" name="message" required maxlength="4000" aria-describedby="fb-message-hint"></textarea>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label for="fb-name">Your name <span class="hint">(optional)</span></label>
-            <input id="fb-name" name="name" type="text" autocomplete="name" maxlength="100">
-          </div>
-          <div class="field">
-            <label for="fb-email">Email <span class="hint">(optional, only if you'd like a reply)</span></label>
-            <input id="fb-email" name="email" type="email" autocomplete="email" maxlength="200">
-          </div>
-        </div>
-        <div class="hp" aria-hidden="true"><label for="fb-website">Leave this empty</label><input id="fb-website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
-        <p class="hint" style="font-size:.88rem;color:var(--muted)">Your message goes only to Russell Morton, who publishes this guide. It's stored privately and isn't shown on the site.</p>
-        <p class="fb-error" id="fb-error" role="alert" hidden></p>
-        <div><button class="btn primary" type="submit" id="fb-submit">Send feedback</button></div>
-      </form>
-      <div class="fb-done panel" id="fb-done" hidden>
-        <h3>Thanks, your feedback was sent</h3>
-        <p>Russell Morton will review it. If it's a correction, the fix will appear in the change log on the About page.</p>
-        <div><button class="btn" type="button" id="fb-again">Send another</button></div>
-      </div>`;
-    const form = $("#fb-form"), topic = $("#fb-topic"), candField = $("#fb-cand-field");
-    let startedAt = Date.now();
-    const syncTopic = () => { candField.hidden = topic.value !== "candidate"; };
-    topic.addEventListener("change", syncTopic);
-    syncTopic();
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const err = $("#fb-error"), btn = $("#fb-submit");
-      const data = Object.fromEntries(new FormData(form));
-      if (data.topic !== "candidate") data.candidate = "";
-      if ((data.message || "").trim().length < 5) {
-        err.textContent = "Write a message of at least a few words.";
-        err.hidden = false;
-        $("#fb-message").focus();
-        return;
-      }
-      err.hidden = true;
-      btn.disabled = true;
-      btn.textContent = "Sending…";
-      try {
-        const r = await fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...data, guide: "municipal", startedAt }) });
-        const out = await r.json().catch(() => ({}));
-        if (!r.ok || !out.ok) throw new Error(out.error || "Your feedback didn't send. Try again in a minute.");
-        form.reset();
-        form.hidden = true;
-        $("#fb-done").hidden = false;
-      } catch (ex) {
-        err.textContent = ex instanceof TypeError ? "Your feedback didn't send. Check your connection and try again." : ex.message;
-        err.hidden = false;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "Send feedback";
-      }
-    });
-    $("#fb-again").addEventListener("click", () => {
-      $("#fb-done").hidden = true;
-      form.hidden = false;
-      startedAt = Date.now();
-      syncTopic();
-    });
-  }
-  const prefillFeedback = (id) => {
-    const c = byId[id];
-    if (!c) return;
-    $("#fb-topic").value = "candidate";
-    $("#fb-candidate").value = c.name;
-    $("#fb-cand-field").hidden = false;
-  };
 
   // ── After the vote ──
   function renderAfterVote() {
@@ -736,9 +697,11 @@ ${over ? "" : `
     el.hidden = !votingOver();
     if (el.hidden) return;
     el.innerHTML = `
-      <h2>This guide is now a record of the campaign</h2>
-      <p>Voting ended at 8 pm on Saturday, October 17. Election night results are unofficial until the City declares the official results, which it posts on its <a href="https://www.mapleridge.ca/your-government/municipal-elections" target="_blank" rel="noopener">election page</a>.</p>
-      <p>The ballot planner is switched off. Everything else stays as it was on voting day.</p>`;
+      <h2>An archive of the 2026 campaign</h2>
+      ${RES
+        ? `<p>Voting ended on Saturday, October 17, and the City declared the official results on ${esc(longDate(RES.declared))}. <a href="#results">See who was elected</a>, or the <a href="${esc(G.sources.cityResults.url)}" target="_blank" rel="noopener">City's results page</a>.</p>`
+        : `<p>Voting ended at 8 pm on Saturday, October 17. The <a href="https://www.mapleridge.ca/your-government/municipal-elections" target="_blank" rel="noopener">City of Maple Ridge</a> posts the official results.</p>`}
+      <p>${G.archived ? `This guide was archived on ${esc(longDate(G.archived))} and is no longer updated. ` : ""}Candidate information is as it was during the campaign.</p>`;
   }
 
   // ── Header bits ──
@@ -757,7 +720,7 @@ ${over ? "" : `
     const badge = $("#ballot-count");
     badge.hidden = !n;
     badge.textContent = n;
-    $("#checked").textContent = `Information last checked ${G.lastChecked}.`;
+    $("#checked").textContent = G.archived ? `Archived ${longDate(G.archived)}. Campaign information last checked ${G.lastChecked}.` : `Information last checked ${G.lastChecked}.`;
   }
 
   function renderAll() {
@@ -774,12 +737,13 @@ ${over ? "" : `
   }
 
   // ── Routing ──
-  const VIEWS = ["start", "questions", "candidates", "compare", "ballot", "about", "feedback"];
+  const VIEWS = ["start", "questions", "candidates", "compare", "ballot", "about"];
   let current = null;
   function route() {
     let h = location.hash.slice(1);
-    let open = null;
+    let open = null, jump = null;
     if (h.startsWith("c-") && byId[h.slice(2)]) { open = h.slice(2); h = "candidates"; }
+    if (h === "results") { h = "start"; jump = "results"; }
     if (!VIEWS.includes(h)) h = "start";
     if (h === "ballot" && votingOver()) { h = "start"; history.replaceState(null, "", "#start"); }
     for (const v of VIEWS) $(`#view-${v}`).hidden = v !== h;
@@ -787,7 +751,8 @@ ${over ? "" : `
     document.querySelectorAll(".tabs a").forEach((a) => { if (a.getAttribute("href") === "#" + h) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
     const nav = $(".tabs"), cur = $(".tabs a[aria-current]");
     if (nav && cur && nav.scrollWidth > nav.clientWidth) nav.scrollTo({ left: cur.offsetLeft - (nav.clientWidth - cur.offsetWidth) / 2, behavior: current ? "smooth" : "auto" });
-    if (current !== h) { window.scrollTo({ top: 0 }); current = h; }
+    if (jump) { document.getElementById(jump)?.scrollIntoView({ block: "start" }); current = h; }
+    else if (current !== h) { window.scrollTo({ top: 0 }); current = h; }
     if (open) openCandidate(open);
   }
 
@@ -800,7 +765,6 @@ ${over ? "" : `
       return;
     }
     const d = t.dataset;
-    if (d.feedback) { prefillFeedback(d.feedback); if (dialog.open) dialog.close?.(); return; }
     if (d.gotoRace) { ui.race = d.gotoRace; ui.slate = "all"; renderCandidates(); return; }
     if (d.pick) { togglePick(d.pick); return; }
     if (d.open) { openCandidate(d.open); return; }
@@ -836,6 +800,5 @@ ${over ? "" : `
   if (untilClose > 0 && untilClose < 2 ** 31 - 1e4) setTimeout(() => { renderAll(); route(); }, untilClose + 1000);
 
   renderAll();
-  renderFeedback();
   route();
 })();

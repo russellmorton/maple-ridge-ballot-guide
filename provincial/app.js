@@ -14,9 +14,14 @@
   const V = G.voting || {};
   const NUM = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
 
-  // Elections BC writes district names with hyphens; other sources use dashes.
-  const norm = (s) => String(s || "").replace(/[‐-―]/g, "-").replace(/\s*-\s*/g, "-").trim().toLowerCase();
-  const ridingByName = (name) => G.ridings.find((r) => norm(r.name) === norm(name)) || null;
+  // ── Official results (the archive) ──
+  const O = G.outcome || null;
+  const num = (n) => n.toLocaleString("en-CA");
+  const longDate = (iso) => new Date(iso + "T12:00:00Z").toLocaleDateString("en-CA", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
+  const votesOf = (c) => ridingById[c.riding]?.result2026?.votes?.[c.id];
+  const isElected = (c) => ridingById[c.riding]?.result2026?.elected === c.id;
+  // Elections BC's percentages are of all ballots considered, rejected ones included.
+  const considered = (r) => Object.values(r.result2026.votes).reduce((a, b) => a + b, 0) + (r.result2026.rejected || 0);
 
   const STANCE = {
     supports: { label: "For" },
@@ -114,7 +119,6 @@
 
   // ── UI state ──
   const ui = {
-    lookup: null, // last "Find your riding" answer, kept in memory only
     candRiding: saved.riding || "all", party: "all", search: "",
     issue: G.issues[0]?.id,
     compareRiding: saved.riding || G.ridings[0]?.id, cell: null, qcell: null,
@@ -150,21 +154,8 @@
             ? `This guide covers every candidate in Maple Ridge's two ridings${next} and what each party promised. Every statement links to where it came from.`
             : `This guide covers every candidate in Maple Ridge's two ridings${next}, what each party is promising, and how to vote. Every statement links to where it came from.`}</p>
         </div>
+        ${over && O ? resultsPanel() : ""}
 
-        <div class="panel finder" id="finder">
-          <div class="stack" style="gap:.3rem">
-            <h3 style="font-size:1.35rem">Find your riding</h3>
-            <p class="muted">Enter your home address. The guide checks it against the official riding boundaries and shows ${over ? "who ran in your riding" : "who's on your ballot"}.</p>
-          </div>
-          <form id="finder-form" novalidate>
-            <label class="sr-only" for="addr">Home address</label>
-            <input id="addr" name="address" type="text" autocomplete="street-address" maxlength="200" placeholder="e.g. 11995 Haney Place, Maple Ridge">
-            <button class="btn primary" type="submit" id="addr-go">Find my riding</button>
-          </form>
-          <p class="fine">Your address is sent to the B.C. government's address service to find where it is. It isn't stored anywhere, including on this device.</p>
-          <div id="finder-result" aria-live="polite"></div>
-          <div class="pick-riding" id="pick-riding"></div>
-        </div>
 
         <div class="ballot-paper">
           <header><span class="eyebrow">How the election works</span></header>
@@ -200,67 +191,31 @@ ${over ? "" : `
 
         ${C.why ? `<div class="panel prose"><span class="eyebrow">Why there's an election now</span><p>${esc(C.why)}</p>${C.source ? srcLink(C.source) : ""}</div>` : ""}`;
     }
-    $("#pick-riding", view).innerHTML = `<span class="muted" style="font-size:.9rem">${saved.riding ? "Your riding:" : "Or choose your riding:"}</span>${ridingButtons("data-set-riding")}`;
-    $("#finder-result", view).innerHTML = finderResult();
     const r = ridingById[saved.riding];
     const where = $("#start-where", view);
-    if (where) where.innerHTML = r ? placesHtml(r) : `<p class="muted" style="font-size:.9rem">Find or choose your riding above to see its advance voting places and district electoral office.</p>`;
+    if (where) where.innerHTML = r ? placesHtml(r) : `<p class="muted" style="font-size:.9rem">Choose your riding to see its advance voting places and district electoral office.</p>`;
   }
 
-  // The answer from /api/riding, in words.
-  function finderResult() {
-    const r = ui.lookup;
-    if (!r) return "";
-    if (r.busy) return `<div class="result"><p>Looking up that address…</p></div>`;
-    const confirm = votingOver() ? "" : `<p class="fine">Boundary files can't be the final word on your riding. Confirm with ${whereToVote()} before you vote.</p>`;
-    const retry = `<p>Try the full address with the street number and city, for example <em>11995 Haney Place, Maple Ridge</em>.</p>`;
-    if (r.error) return `<div class="result warn"><p>${esc(r.error)}</p><p>You can choose your riding below, or look it up on ${whereToVote()}.</p></div>`;
-    if (r.status === "found") {
-      const riding = ridingByName(r.district);
-      if (!riding) {
-        return `<div class="result warn"><span class="eyebrow">That address looks like it's in</span><h3>${esc(r.district)}</h3>${r.matchedAddress ? `<p class="muted">Matched address: ${esc(r.matchedAddress)}</p>` : ""}<p>This guide doesn't cover that riding. Elections BC lists every candidate in the province.</p>${confirm}</div>`;
-      }
-      const cands = inRiding(riding.id);
-      return `
-        <div class="result">
-          <span class="eyebrow">Your riding is most likely</span>
-          <h3>${esc(riding.name)}</h3>
-          ${r.matchedAddress ? `<p class="muted" style="font-size:.9rem">Matched address: ${esc(r.matchedAddress)}. If that's not your address, try again with more detail.</p>` : ""}
-          ${r.nearBoundary ? `<p class="note">This address is close to a riding boundary, so it's worth confirming with Elections BC.</p>` : ""}
-          <ul class="who-list">${cands.map((c) => `<li><button class="linkish" type="button" data-open="${c.id}">${esc(c.name)}</button> <span class="muted">${esc(partyName(c))}</span></li>`).join("")}</ul>
-          <div class="actions"><a class="btn primary" href="#r-${riding.id}">See your riding</a><a class="btn" href="#compare" data-compare-riding="${riding.id}">Compare your candidates</a></div>
-          ${confirm}
-        </div>`;
-    }
-    if (r.status === "ambiguous") {
-      const all = [r.matchedAddress, ...(r.alternatives || [])].filter(Boolean);
-      return `<div class="result warn"><p><strong>That address is in more than one town.</strong> Add your city so we pick the right one${all.length ? `, for example ${all.slice(0, 3).map((a) => `<em>${esc(a)}</em>`).join(" or ")}` : ""}.</p></div>`;
-    }
-    if (r.status === "imprecise" || r.status === "low-score") {
-      return `<div class="result warn"><p><strong>We couldn't pin down that address.</strong>${r.matchedAddress ? ` The closest match was <em>${esc(r.matchedAddress)}</em>, which isn't precise enough to tell which riding it's in.` : ""}</p>${retry}</div>`;
-    }
-    if (r.status === "not-found") return `<div class="result warn"><p><strong>We couldn't find that address in B.C.</strong></p>${retry}</div>`;
-    return `<div class="result warn"><p>We found the address but couldn't tell which riding it's in. Choose your riding below, or look it up on ${whereToVote()}.</p></div>`;
-  }
 
-  async function lookup(address) {
-    ui.lookup = { busy: true };
-    $("#finder-result").innerHTML = finderResult();
-    const btn = $("#addr-go");
-    btn.disabled = true;
-    try {
-      const r = await fetch("/api/riding", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ address }) });
-      const out = await r.json().catch(() => ({}));
-      if (!r.ok || !out.ok) throw new Error(out.error || "The address lookup isn't working right now.");
-      ui.lookup = out;
-      const riding = out.status === "found" ? ridingByName(out.district) : null;
-      if (riding) setRiding(riding.id);
-    } catch (ex) {
-      ui.lookup = { error: ex instanceof TypeError ? "Couldn't reach the address lookup. Check your connection and try again." : ex.message };
-    } finally {
-      btn.disabled = false;
-    }
-    renderAll();
+  // Province-wide seats, then who won each riding in this guide.
+  function resultsPanel() {
+    const seats = Object.entries(O.seats).sort((a, b) => b[1] - a[1]);
+    const total = (G.context || {}).seats || 93, majority = (G.context || {}).majority || 47;
+    const [lead, n] = seats[0];
+    const winners = [...HOME, ...NEAR].filter((r) => r.result2026).map((r) => {
+      const w = byId[r.result2026.elected];
+      const list = inRiding(r.id).map(votesOf).sort((a, b) => b - a);
+      return `<dt><a href="#r-${r.id}">${esc(r.name)}</a></dt><dd><button class="linkish" type="button" data-open="${w.id}">${esc(w.name)}</button> <span class="muted">(${esc(partyName(w))})</span>, won by ${num(list[0] - list[1])} votes</dd>`;
+    }).join("");
+    return `
+      <div class="panel" id="results">
+        <span class="eyebrow">Final results · declared ${esc(longDate(O.declared))}</span>
+        <h3>Who won</h3>
+        <p>Across B.C., the ${esc(partyById[lead].name)} won ${n} of ${total} seats${n >= majority ? ", a majority" : ""}${seats.slice(1).map(([id, k], i, rest) => `${i === rest.length - 1 && i > 0 ? " and" : ","} the ${esc(partyById[id].name)} ${k}`).join("")}. Turnout was ${esc(O.turnout)}.</p>
+        <dl class="elected">${winners}</dl>
+        <p class="muted" style="font-size:.92rem"><a href="#ridings">See every riding's full result</a> next to its 2024 result.</p>
+        <span class="src-group">${srcLink(O.source)}${srcLink("ebcResults2026")}</span>
+      </div>`;
   }
 
   // ── RIDINGS ──
@@ -281,6 +236,27 @@ ${over ? "" : `
       </ol>
       ${margin !== null ? `<p class="margin-note">Won by <strong class="mono">${margin.toLocaleString("en-CA")}</strong> vote${margin === 1 ? "" : "s"} (${(first.pct - second.pct).toFixed(1)} points).${res.note ? " " + esc(res.note) : ""}</p>` : ""}
       ${res.source ? srcLink(res.source) : ""}`;
+  }
+
+  function results2026Html(r) {
+    const res = r.result2026;
+    const total = considered(r);
+    const rows = inRiding(r.id).filter((c) => res.votes[c.id] != null).sort((a, b) => res.votes[b.id] - res.votes[a.id]);
+    const margin = rows[1] ? res.votes[rows[0].id] - res.votes[rows[1].id] : null;
+    return `
+      <ol class="results" aria-label="2026 results in ${esc(r.name)}">
+        ${rows.map((c) => {
+          const v = res.votes[c.id], pct = (100 * v) / total, won = c.id === res.elected;
+          return `
+          <li class="${won ? "won" : ""}" title="${esc(c.name)}: ${num(v)} votes">
+            <span class="lbl"><span><button class="linkish" type="button" data-open="${c.id}">${esc(c.name)}</button>${won ? " <strong>elected</strong>" : ""}</span><small>${esc(partyName(c))}</small></span>
+            <span class="track"><span class="fill" style="width:${Math.min(100, pct).toFixed(1)}%"></span></span>
+            <span class="pct">${pct.toFixed(1)}%</span>
+          </li>`;
+        }).join("")}
+      </ol>
+      ${margin !== null ? `<p class="margin-note">Won by <strong class="mono">${num(margin)}</strong> votes in the final count.</p>` : ""}
+      ${srcLink(res.source)}`;
   }
 
   // Riding outlines, drawn straight from BC Albers metres (north is up). The
@@ -336,21 +312,21 @@ ${over ? "" : `
       <article class="riding ${mine ? "mine" : ""}" id="r-${r.id}">
         <header>
           <h3>${esc(r.name)}</h3>
-          <span class="eyebrow">${mine ? `<span class="badge mine">Your riding</span> ` : ""}${cands.length} candidates, vote for 1</span>
+          <span class="eyebrow">${mine ? `<span class="badge mine">Your riding</span> ` : ""}${cands.length} candidates${r.result2026 ? "" : ", vote for 1"}</span>
         </header>
         ${r.area ? `<p class="muted prose">${esc(r.area)}</p>` : ""}
         ${r.note ? `<p class="note">${esc(r.note)} ${r.noteSource ? srcLink(r.noteSource) : ""}</p>` : ""}
         <div class="riding-cols">
           <div class="stack" style="gap:.5rem">
-            <span class="eyebrow">On the ballot</span>
-            <ol class="cand-rows">${cands.map(candRow).join("")}</ol>
+            ${r.result2026 ? `<span class="eyebrow">2026 result</span>${results2026Html(r)}` : `<span class="eyebrow">On the ballot</span>
+            <ol class="cand-rows">${cands.map(candRow).join("")}</ol>`}
             <div class="actions">
               <a class="btn" href="#compare" data-compare-riding="${r.id}">Compare these candidates</a>
-              ${mine ? "" : `<button class="btn" type="button" data-set-riding="${r.id}">This is my riding</button>`}
+              ${mine || r.result2026 ? "" : `<button class="btn" type="button" data-set-riding="${r.id}">This is my riding</button>`}
             </div>
           </div>
           <div class="stack" style="gap:.5rem">
-            <span class="eyebrow">2024 result in this riding</span>
+            <span class="eyebrow">2024 result${r.result2026 ? ", same boundaries" : " in this riding"}</span>
             ${resultsHtml(r)}
           </div>
         </div>
@@ -376,7 +352,7 @@ ${over ? "" : `
   }
 
   // ── CANDIDATES ──
-  const badges = (c) => `${c.incumbent ? `<span class="badge inc">Incumbent MLA</span>` : ""}<span class="badge">${esc(partyName(c))}</span>${saved.riding === c.riding ? `<span class="badge mine">Your riding</span>` : ""}`;
+  const badges = (c) => `${isElected(c) ? `<span class="badge won">Elected</span>` : ""}${c.incumbent ? `<span class="badge inc">Incumbent MLA</span>` : ""}<span class="badge">${esc(partyName(c))}</span>${saved.riding === c.riding ? `<span class="badge mine">Your riding</span>` : ""}`;
 
   function card(c) {
     return `
@@ -392,7 +368,7 @@ ${over ? "" : `
         ${c.priorities?.length ? `<div class="chips">${c.priorities.slice(0, 3).map((p) => `<span class="chip">${esc(p)}</span>`).join("")}</div>` : ""}
         ${c.note ? `<p class="note">${esc(c.note)}</p>` : ""}
         <div class="card-foot">
-          <button class="linkish" type="button" data-open="${c.id}">Positions &amp; contact</button>
+          <button class="linkish" type="button" data-open="${c.id}">Positions &amp; details</button>
           ${ovalBtn(c)}
         </div>
       </article>`;
@@ -412,7 +388,7 @@ ${over ? "" : `
       if (!list.length) return "";
       return `
         <div class="race-group">
-          <header><h3 style="font-size:1.4rem">${esc(r.name)}${saved.riding === r.id ? ` <span class="badge mine">Your riding</span>` : ""}</h3><span class="eyebrow">${inRiding(r.id).length} running, vote for 1</span></header>
+          <header><h3 style="font-size:1.4rem">${esc(r.name)}${saved.riding === r.id ? ` <span class="badge mine">Your riding</span>` : ""}</h3><span class="eyebrow">${inRiding(r.id).length} ${r.result2026 ? "ran" : "running, vote for 1"}</span></header>
           <div class="cards">${list.map(card).join("")}</div>
         </div>`;
     }).join("");
@@ -452,12 +428,8 @@ ${over ? "" : `
       const pos = c.positions?.[iss.id] || { stance: "none" };
       return `<div class="pos"><span class="lbl">${esc(iss.label)}</span><div class="txt">${pill(pos.stance)}${pos.text ? `<span>${esc(pos.text)}</span>` : `<span class="muted">No public statement found in our sources.</span>`}${pos.source ? srcLink(pos.source, c) : ""}</div></div>`;
     }).join("");
-    const L = c.links || {};
-    const contact = [
-      L.website && ["Website", `<a href="${esc(L.website)}" target="_blank" rel="noopener">${esc(L.website.replace(/^https?:\/\//, "").replace(/\/$/, ""))}</a>`, true],
-      L.email && ["Email", esc(L.email)],
-      L.phone && ["Phone", esc(L.phone)],
-    ].filter(Boolean);
+    const site = c.links?.website;
+    const v = votesOf(c);
     dialog.innerHTML = `
       <div class="dlg" tabindex="-1">
         <div class="dlg-head">
@@ -468,6 +440,7 @@ ${over ? "" : `
           </div>
           <button class="btn" type="button" data-close>Close</button>
         </div>
+        ${v != null ? `<p class="result-line">${isElected(c) ? "<strong>Elected</strong> with" : "Not elected:"} ${num(v)} votes (${((100 * v) / considered(ridingById[c.riding])).toFixed(1)}%). ${srcLink("ebcResults2026")}</p>` : ""}
         ${c.background ? `<p>${esc(c.background)}</p>` : ""}
         ${c.backgroundSource ? srcLink(c.backgroundSource, c) : ""}
         ${c.note ? `<p class="note">${esc(c.note)}</p>` : ""}
@@ -477,12 +450,11 @@ ${over ? "" : `
           <div class="pos-list">${positions}</div>
         </div>
         <div class="panel" style="padding:.8rem 1rem">
-          ${p ? `<p><strong>${esc(p.name)}</strong>${p.leader ? `, led by ${esc(p.leader)}` : ""}. If elected, ${esc(c.name)} would sit as one of its MLAs.</p><a href="#parties" data-party-issue="${esc(p.id)}" data-close>See what the ${esc(p.name)} platform says, issue by issue</a>` : `<p><strong>${esc(partyName(c))}.</strong> ${esc(c.name)} isn't running for a party, so there's no platform to compare. Their own statements are above.</p>`}
+          ${p ? `<p><strong>${esc(p.name)}</strong>${p.leader ? `, led by ${esc(p.leader)}` : ""}. ${v != null ? (isElected(c) ? `${esc(c.name)} was elected as one of its MLAs.` : "") : `If elected, ${esc(c.name)} would sit as one of its MLAs.`}</p><a href="#parties" data-party-issue="${esc(p.id)}" data-close>See what the ${esc(p.name)} platform says, issue by issue</a>` : `<p><strong>${esc(partyName(c))}.</strong> ${esc(c.name)} isn't running for a party, so there's no platform to compare. Their own statements are above.</p>`}
         </div>
         <div class="stack" style="gap:.5rem">
-          <span class="eyebrow">Contact</span>
-          ${contact.length ? `<dl class="contact">${contact.map(([k, v, isUrl]) => `<dt>${k}</dt><dd class="${isUrl ? "url" : ""}">${v}</dd>`).join("")}</dl>` : `<p class="muted">No contact details found.</p>`}
-          <a href="#feedback" data-feedback="${c.id}" data-close>Report an error about ${esc(c.name)}</a>
+          <span class="eyebrow">Website</span>
+          ${site ? `<a href="${esc(site)}" target="_blank" rel="noopener">${esc(site.replace(/^https?:\/\//, "").replace(/\/$/, ""))}</a>` : `<p class="muted">No website found.</p>`}
         </div>
         <p class="src">Background, tags and position summaries were written by this guide with AI assistance, not by the candidate. <a href="#about" data-close>How this was made</a>.</p>
         <div class="card-foot">${ovalBtn(c)}<button class="btn" type="button" data-close>Close</button></div>
@@ -529,7 +501,8 @@ ${over ? "" : `
               <h3>${esc(p.name)}</h3>
               ${p.fullName && p.fullName !== p.name ? `<p class="sub">${esc(p.fullName)}</p>` : ""}
               <p class="sub"><strong>Leader:</strong> ${esc(p.leader)}${p.leaderNote ? `. ${esc(p.leaderNote)}` : ""}</p>
-              ${p.candidatesBC ? `<p class="sub">Running in ${p.candidatesBC} of ${G.context.seats} ridings</p>` : ""}
+              ${O ? `<p class="sub"><strong>Won ${O.seats[p.id] || 0} of ${G.context.seats} seats</strong></p>` : ""}
+              ${p.candidatesBC ? `<p class="sub">${O ? "Ran" : "Running"} in ${p.candidatesBC} of ${G.context.seats} ridings</p>` : ""}
             </div>
             ${p.summary ? `<p class="sub">${esc(p.summary)} ${p.summarySource ? srcLink(p.summarySource) : ""}</p>` : ""}
             <p class="sub">In this guide's ridings: ${local(p).map((c) => `<button class="linkish" type="button" data-open="${c.id}">${esc(c.name)}</button> <span class="muted">(${esc(ridingById[c.riding].name)})</span>`).join(", ") || "none"}</p>
@@ -655,7 +628,7 @@ ${over ? "" : `
       <div class="panel">
         <span class="eyebrow">1. Your riding</span>
         <div class="pick-riding">${ridingButtons("data-set-riding")}</div>
-        <p class="muted" style="font-size:.9rem">Not sure? <a href="#start" data-focus-finder>Find your riding from your address</a>.</p>
+        <p class="muted" style="font-size:.9rem">Not sure? <a href="#ridings">See the ridings on the map</a>.</p>
       </div>
 
       <div class="panel">
@@ -732,6 +705,7 @@ ${over ? "" : `
       <div class="section-head">
         <h2>How this guide was made</h2>
         <p class="prose">Where every piece of information came from, who and what produced the summaries, how each label was chosen, and what we haven't checked. If anything here conflicts with Elections BC, Elections BC is correct.</p>
+        ${G.archived ? `<p class="prose"><strong>Archived on ${esc(longDate(G.archived))}.</strong> The guide is no longer updated. Candidate and party information is as it was during the campaign; the final results were added when it was archived.</p>` : ""}
       </div>
 
       <div class="status-banner" role="status">
@@ -762,10 +736,12 @@ ${over ? "" : `
       <div class="panel prose method">
         <h3>What each part of the guide means</h3>
         <dl class="deflist">
-          <dt>Find your riding</dt>
-          <dd>Your address goes to the B.C. government's Address Geocoder, which returns a point on the map. The guide checks that point against DataBC's official riding boundaries, and flags addresses within 150 metres of a boundary. Elections BC says boundary files shouldn't be the final word on a voter's riding, so confirm with Elections BC's Where to Vote. Your address isn't stored by this site or on your device.</dd>
+          <dt>Results</dt>
+          <dd>Final-count results as declared by the Chief Electoral Officer on ${O ? esc(longDate(O.declared)) : "November 9, 2026"}, copied from Elections BC. Percentages are of all ballots considered, as Elections BC reports them. None of these five ridings was close enough for an automatic judicial recount.</dd>
+          <dt>Find your riding (during the campaign)</dt>
+          <dd>An address lookup sent the address you typed to the B.C. government's Address Geocoder and checked the point against DataBC's official riding boundaries. Neither this site nor the geocoder stored it. It was removed when the guide was archived; the riding map uses the same official boundaries.</dd>
           <dt>Riding descriptions</dt>
-          <dd>The neighbourhoods named for each riding come from checking well-known addresses against the official boundaries (and, for Langley-Walnut Grove, the Langley Advance Times). Use Find your riding for your own address.</dd>
+          <dd>The neighbourhoods named for each riding come from checking well-known addresses against the official boundaries (and, for Langley-Walnut Grove, the Langley Advance Times). Elections BC's maps are the authority for any particular address.</dd>
           <dt>Background and priority tags</dt>
           <dd>A short paraphrase of the candidate's party page or news coverage, and short tags. <strong>We wrote these; they aren't quotes.</strong></dd>
           <dt>Candidate positions</dt>
@@ -803,18 +779,19 @@ ${over ? "" : `
             <li><strong>No endorsements, rankings, polls or predictions.</strong> Candidates are listed alphabetically by surname; parties alphabetically by ballot name.</li>
             <li><strong>No party colours, logos or photos.</strong> Every candidate gets the same initials marker.</li>
             <li><strong>No affiliation.</strong> This site isn't connected to Elections BC, the Government of B.C., any party or candidate.</li>
-            <li><strong>Visit counts only.</strong> Vercel Web Analytics counts page visits without cookies. Your vote plan is saved only on your device and never sent anywhere.</li>
-            <li><strong>Find your riding</strong> sends the address you type to the B.C. government's Address Geocoder, through this site's server. Neither stores it.</li>
-            <li><strong>AI assistant.</strong> "Ask the guide" sends your questions to Anthropic's Claude through Vercel AI Gateway, along with this guide's content. It's told not to recommend candidates or parties. Answers can be wrong; check the sources it links.</li>
+            <li><strong>No tracking.</strong> During the campaign, Vercel Web Analytics counted page visits without cookies. It was removed when the guide was archived. Vote plans were only ever saved on your own device.</li>
+            <li><strong>No address lookup.</strong> "Find your riding" was removed when the guide was archived.</li>
+            <li><strong>No AI assistant.</strong> During the campaign, "Ask the guide" answered questions from this guide's content using Anthropic's Claude through Vercel AI Gateway. It was switched off when the guide was archived.</li>
+            <li><strong>No feedback form.</strong> During the campaign, a form sent corrections privately to the publisher. It was closed when the guide was archived.</li>
           </ul>
-          ${G.maintainer ? `<p><strong>Published by:</strong> ${esc(G.maintainer)}. <a href="#feedback">Send feedback or report an error</a>.</p>` : ""}
+          ${G.maintainer ? `<p><strong>Published by:</strong> ${esc(G.maintainer)}. Follow updates on X at <a href="https://x.com/russell_morton" target="_blank" rel="noopener">@russell_morton</a>.</p>` : ""}
         </div>
       </div>
 
       <div class="panel prose method" id="disclaimer">
         <h3>Disclaimer</h3>
-        <p>This guide is an independent project provided for general information only. We've worked to make it accurate and fair, and every summary links to its source, but it may contain errors or be out of date. It is provided "as is", without warranties of any kind, and Russell Morton is not liable for any loss or damage arising from its use or from reliance on it. It is not an official election publication and is not legal advice. Links to other websites are provided for convenience; we aren't responsible for their content. Answers from the "Ask the guide" assistant are generated by AI and may be inaccurate or incomplete.</p>
-        <p><strong>Candidates and parties:</strong> if anything about you is wrong or missing, tell us through the <a href="#feedback">feedback form</a> and we'll check it and correct it promptly.</p>
+        <p>This guide is an independent project provided for general information only. We've worked to make it accurate and fair, and every summary links to its source, but it may contain errors or be out of date. It is provided "as is", without warranties of any kind, and Russell Morton is not liable for any loss or damage arising from its use or from reliance on it. It is not an official election publication and is not legal advice. Links to other websites are provided for convenience; we aren't responsible for their content, and some may no longer work.</p>
+        <p>This guide is an archive of the 2026 campaign and is no longer updated or corrected.</p>
       </div>
 
       <div class="panel method">
@@ -824,111 +801,12 @@ ${over ? "" : `
           <tbody>${Object.values(G.sources).map((s2) => `<tr><td style="min-width:14rem">${s2.url ? `<a href="${esc(s2.url)}" target="_blank" rel="noopener">${esc(s2.title)}</a>` : esc(s2.title)}<br><span class="muted" style="font-size:.85rem">${esc(s2.publisher)}${s2.date ? ", " + esc(s2.date) : ""}</span></td><td style="min-width:16rem">${esc(s2.usedFor || "")}</td></tr>`).join("")}
           <tr><td style="min-width:14rem">Candidates' party pages<br><span class="muted" style="font-size:.85rem">${profiles.map((c) => `<a href="${esc(c.profile.url)}" target="_blank" rel="noopener">${esc(c.name)}</a>`).join(", ")}</span></td><td>Backgrounds, priority tags and some positions. Each is linked from the candidate's entry.</td></tr></tbody>
         </table></div>
-        <p class="muted" style="font-size:.88rem">All sources were accessed on ${esc(G.lastChecked)}.</p>
+        <p class="muted" style="font-size:.88rem">Campaign sources were accessed on ${esc(G.lastChecked)}${G.archived ? `, and the results sources on ${esc(G.archived)}` : ""}.</p>
       </div>
 
       ${G.changes?.length ? `<div class="panel method"><h3>Change log</h3><ul class="changelog">${G.changes.slice().reverse().map((c) => `<li><span class="mono muted">${esc(c.date)}</span> ${esc(c.text)}</li>`).join("")}</ul></div>` : ""}`;
   }
 
-  // ── FEEDBACK ──
-  function renderFeedback() {
-    $("#view-feedback").innerHTML = `
-      <div class="section-head">
-        <h2>Send feedback</h2>
-        <p class="prose">Spotted a mistake, or something missing? Tell us and we'll check it against the sources and fix it. Corrections are listed on the <a href="#about">About page</a>.</p>
-      </div>
-      <form class="fb-form" id="fb-form" novalidate>
-        <div class="field">
-          <label for="fb-topic">What's this about?</label>
-          <select id="fb-topic" name="topic">
-            <option value="candidate">A candidate's information</option>
-            <option value="party">A party's platform</option>
-            <option value="riding">Finding my riding</option>
-            <option value="voting">Voting information</option>
-            <option value="site">Something on the site isn't working</option>
-            <option value="other">Other feedback</option>
-          </select>
-        </div>
-        <div class="field" id="fb-cand-field">
-          <label for="fb-candidate">Which candidate?</label>
-          <select id="fb-candidate" name="candidate">
-            <option value="">Choose a candidate</option>
-            ${G.ridings.map((r) => `<optgroup label="${esc(r.name)}">${inRiding(r.id).map((c) => `<option value="${esc(c.name)}">${esc(c.name)}</option>`).join("")}</optgroup>`).join("")}
-          </select>
-        </div>
-        <div class="field">
-          <label for="fb-message">Your message</label>
-          <span class="hint" id="fb-message-hint">If something is wrong, say what it should be and where you saw the correct information. Please don't include your home address.</span>
-          <textarea id="fb-message" name="message" required maxlength="4000" aria-describedby="fb-message-hint"></textarea>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label for="fb-name">Your name <span class="hint">(optional)</span></label>
-            <input id="fb-name" name="name" type="text" autocomplete="name" maxlength="100">
-          </div>
-          <div class="field">
-            <label for="fb-email">Email <span class="hint">(optional, only if you'd like a reply)</span></label>
-            <input id="fb-email" name="email" type="email" autocomplete="email" maxlength="200">
-          </div>
-        </div>
-        <div class="hp" aria-hidden="true"><label for="fb-website">Leave this empty</label><input id="fb-website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
-        <p class="hint" style="font-size:.88rem;color:var(--muted)">Your message goes only to Russell Morton, who publishes this guide. It's stored privately and isn't shown on the site.</p>
-        <p class="fb-error" id="fb-error" role="alert" hidden></p>
-        <div><button class="btn primary" type="submit" id="fb-submit">Send feedback</button></div>
-      </form>
-      <div class="fb-done panel" id="fb-done" hidden>
-        <h3>Thanks, your feedback was sent</h3>
-        <p>Russell Morton will review it. If it's a correction, the fix will appear in the change log on the About page.</p>
-        <div><button class="btn" type="button" id="fb-again">Send another</button></div>
-      </div>`;
-    const form = $("#fb-form"), topic = $("#fb-topic"), candField = $("#fb-cand-field");
-    let startedAt = Date.now();
-    const syncTopic = () => { candField.hidden = topic.value !== "candidate"; };
-    topic.addEventListener("change", syncTopic);
-    syncTopic();
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const err = $("#fb-error"), btn = $("#fb-submit");
-      const data = Object.fromEntries(new FormData(form));
-      if (data.topic !== "candidate") data.candidate = "";
-      if ((data.message || "").trim().length < 5) {
-        err.textContent = "Write a message of at least a few words.";
-        err.hidden = false;
-        $("#fb-message").focus();
-        return;
-      }
-      err.hidden = true;
-      btn.disabled = true;
-      btn.textContent = "Sending…";
-      try {
-        const r = await fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...data, guide: "provincial", startedAt }) });
-        const out = await r.json().catch(() => ({}));
-        if (!r.ok || !out.ok) throw new Error(out.error || "Your feedback didn't send. Try again in a minute.");
-        form.reset();
-        form.hidden = true;
-        $("#fb-done").hidden = false;
-      } catch (ex) {
-        err.textContent = ex instanceof TypeError ? "Your feedback didn't send. Check your connection and try again." : ex.message;
-        err.hidden = false;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "Send feedback";
-      }
-    });
-    $("#fb-again").addEventListener("click", () => {
-      $("#fb-done").hidden = true;
-      form.hidden = false;
-      startedAt = Date.now();
-      syncTopic();
-    });
-  }
-  const prefillFeedback = (id) => {
-    const c = byId[id];
-    if (!c) return;
-    $("#fb-topic").value = "candidate";
-    $("#fb-candidate").value = c.name;
-    $("#fb-cand-field").hidden = false;
-  };
 
   // ── After the vote ──
   function renderAfterVote() {
@@ -936,9 +814,11 @@ ${over ? "" : `
     el.hidden = !votingOver();
     if (el.hidden) return;
     el.innerHTML = `
-      <h2>This guide is now a record of the campaign</h2>
-      <p>Voting ended at 8 pm on Saturday, October 24. Election night results are preliminary until Elections BC's final count. Results are on <a href="https://elections.bc.ca/" target="_blank" rel="noopener">Elections BC's website</a>.</p>
-      <p>The vote planner is switched off. Everything else stays as it was on voting day.</p>`;
+      <h2>An archive of the 2026 campaign</h2>
+      ${O
+        ? `<p>Voting ended on Saturday, October 24, and Elections BC declared the results at the end of the final count on ${esc(longDate(O.declared))}. <a href="#results">See who won</a>, or <a href="${esc(G.sources[O.source].url)}" target="_blank" rel="noopener">Elections BC's announcement</a>.</p>`
+        : `<p>Voting ended at 8 pm on Saturday, October 24. Results are on <a href="https://elections.bc.ca/" target="_blank" rel="noopener">Elections BC's website</a>.</p>`}
+      <p>${G.archived ? `This guide was archived on ${esc(longDate(G.archived))} and is no longer updated. ` : ""}Candidate and party information is as it was during the campaign.</p>`;
   }
 
   // ── Header bits ──
@@ -956,7 +836,7 @@ ${over ? "" : `
     const badge = $("#plan-count");
     badge.hidden = !saved.pick;
     badge.textContent = saved.pick ? "1" : "";
-    $("#checked").textContent = G.lastChecked ? `Information last checked ${G.lastChecked}.` : "";
+    $("#checked").textContent = G.archived ? `Archived ${longDate(G.archived)}. Campaign information last checked ${G.lastChecked}.` : G.lastChecked ? `Information last checked ${G.lastChecked}.` : "";
     $("#official").innerHTML = `Official election information: <a href="https://elections.bc.ca/" target="_blank" rel="noopener">elections.bc.ca</a>${V.phone ? ` · ${esc(V.phone)}` : ""}`;
   }
 
@@ -975,13 +855,14 @@ ${over ? "" : `
   }
 
   // ── Routing ──
-  const VIEWS = ["start", "ridings", "candidates", "parties", "compare", "plan", "about", "feedback"];
+  const VIEWS = ["start", "ridings", "candidates", "parties", "compare", "plan", "about"];
   let current = null;
   function route() {
     let h = location.hash.slice(1);
     let open = null, scrollTo = null;
     if (h.startsWith("c-") && byId[h.slice(2)]) { open = h.slice(2); h = "candidates"; }
     if (h.startsWith("r-") && ridingById[h.slice(2)]) { scrollTo = h; h = "ridings"; }
+    if (h === "results") { scrollTo = h; h = "start"; }
     if (!VIEWS.includes(h)) h = "start";
     if (h === "plan" && votingOver()) { h = "start"; history.replaceState(null, "", "#start"); }
     for (const v of VIEWS) $(`#view-${v}`).hidden = v !== h;
@@ -1004,7 +885,6 @@ ${over ? "" : `
       return;
     }
     const d = t.dataset;
-    if (d.feedback) { prefillFeedback(d.feedback); if (dialog.open) dialog.close?.(); return; }
     if (d.pick) { togglePick(d.pick); return; }
     if (d.open) { openCandidate(d.open); return; }
     if (d.setRiding) { setRiding(d.setRiding); ui.candRiding = d.setRiding; renderAll(); return; }
@@ -1017,7 +897,6 @@ ${over ? "" : `
       return;
     }
     if (d.issue) { ui.issue = d.issue; renderParties(); return; }
-    if ("focusFinder" in d) { setTimeout(() => $("#addr")?.focus(), 0); return; }
     if ("resetFilters" in d) { ui.candRiding = "all"; ui.party = "all"; ui.search = ""; $("#cand-search").value = ""; renderCandidates(); return; }
     if (d.qcell) {
       const [pp, q] = d.qcell.split("|");
@@ -1035,21 +914,9 @@ ${over ? "" : `
     if ("print" in d) { renderPrintSheet(); window.print(); return; }
     if (d.clear) {
       if (d.clear === "ask") ui.confirmClear = true;
-      else { if (d.clear === "yes") { saved = blank(); ui.lookup = null; } persist(); ui.confirmClear = false; }
+      else { if (d.clear === "yes") { saved = blank(); } persist(); ui.confirmClear = false; }
       renderAll();
     }
-  });
-  document.addEventListener("submit", (e) => {
-    if (e.target.id !== "finder-form") return;
-    e.preventDefault();
-    const address = $("#addr").value.trim();
-    if (address.length < 5) {
-      ui.lookup = { status: "not-found" };
-      $("#finder-result").innerHTML = finderResult();
-      $("#addr").focus();
-      return;
-    }
-    lookup(address);
   });
   window.addEventListener("hashchange", route);
 
@@ -1058,6 +925,5 @@ ${over ? "" : `
   if (untilClose > 0 && untilClose < 2 ** 31 - 1e4) setTimeout(() => { renderAll(); route(); }, untilClose + 1000);
 
   renderAll();
-  renderFeedback();
   route();
 })();
